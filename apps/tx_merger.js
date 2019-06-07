@@ -23,7 +23,7 @@ async function main() {
 
 	let txs = [];
 	for (let file of file_list) {
-		let _txs = await tools.tx.loadTransactionsFromFile(file);
+		let _txs = await tools.storage.loadTransactionsFromFile(file);
 
 		txs = txs.concat(_txs);
 	}
@@ -35,7 +35,7 @@ async function main() {
 		tools.sign.mergeSignatures(txs);
 	}
 
-	await tools.tx.saveTransactionsToFile(options.output, txs);
+	await tools.storage.saveTransactionsToFile(options.output, txs);
 }
 
 function parseCmdLineParams() {
