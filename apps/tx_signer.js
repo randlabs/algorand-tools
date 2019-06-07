@@ -16,16 +16,16 @@ main().then(() => {
 async function main() {
 	let options = await parseCmdLineParams();
 
-	let txs = await tools.tx.loadTransactionsFromFile(options.input);
+	let txs = await tools.storage.loadTransactionsFromFile(options.input);
 
 	for (let idx = 0; idx < txs.length; idx++) {
 		if (options.remove_signature) {
-			tools.tx.removeAllSignatures(txs[idx]);
+			tools.sign.removeAllSignatures(txs[idx]);
 		}
-		tools.tx.addSignature(txs[idx], options.mnemonic, options.multisig_threshold, options.multisig_addresses);
+		tools.sign.addSignature(txs[idx], options.mnemonic, options.multisig_threshold, options.multisig_addresses);
 	}
 
-	await tools.tx.saveTransactionsToFile(options.output, txs);
+	await tools.storage.saveTransactionsToFile(options.output, txs);
 }
 
 function parseCmdLineParams() {
@@ -70,35 +70,41 @@ function parseCmdLineParams() {
 			return;
 		}
 
-		let multisig_threshold = cmdline.get('multisig-threshold');
-		if (multisig_threshold !== null) {
-			multisig_threshold = parseInt(multisig_threshold, 10);
-			if (isNaN(multisig_threshold) || multisig_threshold < 1) {
-				reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be greater than or equal to 1."));
-				return;
+		let multisig_threshold;
+		if (cmdline.keyexists('multisig-threshold')) {
+			multisig_threshold = cmdline.get('multisig-threshold');
+			if (multisig_threshold !== null) {
+				multisig_threshold = parseInt(multisig_threshold, 10);
+				if (isNaN(multisig_threshold) || multisig_threshold < 1) {
+					reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be greater than or equal to 1."));
+					return;
+				}
 			}
 		}
 
 		let remove_signature = cmdline.keyexists('remove-existing');
 
-		let multisig_addresses = cmdline.get('multisig-addresses');
-		if (multisig_addresses !== null) {
-			multisig_addresses = multisig_addresses.split(',');
-			if (multisig_addresses.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--multisig-addresses' parameter. It must be a comma-separated list of addresses."));
-				return;
-			}
-			for (let idx = 0; idx < multisig_addresses.length; idx++) {
-				multisig_addresses[idx] = multisig_addresses[idx].trim();
-				if (multisig_addresses[idx].length == 0) {
-					reject(new Error("ERROR: Invalid value in '--multisig-addresses' parameter. Addresses can not be empty."));
+		let multisig_addresses;
+		if (cmdline.keyexists('multisig-addresses')) {
+			multisig_addresses = cmdline.get('multisig-addresses');
+			if (multisig_addresses !== null) {
+				multisig_addresses = multisig_addresses.split(',');
+				if (multisig_addresses.length == 0) {
+					reject(new Error("ERROR: Invalid value in '--multisig-addresses' parameter. It must be a comma-separated list of addresses."));
 					return;
 				}
-			}
+				for (let idx = 0; idx < multisig_addresses.length; idx++) {
+					multisig_addresses[idx] = multisig_addresses[idx].trim();
+					if (multisig_addresses[idx].length == 0) {
+						reject(new Error("ERROR: Invalid value in '--multisig-addresses' parameter. Addresses can not be empty."));
+						return;
+					}
+				}
 
-			if (multisig_threshold > multisig_addresses.length) {
-				reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be less than or equal to the number of addresses."));
-				return;
+				if (multisig_threshold > multisig_addresses.length) {
+					reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be less than or equal to the number of addresses."));
+					return;
+				}
 			}
 		}
 
