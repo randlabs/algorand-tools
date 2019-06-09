@@ -14,7 +14,7 @@
   "author": "RandLabs",
   "license": "MIT",
   "dependencies": {
-    "algosdk": "git://github.com/randlabs/js-algorand-sdk.git#fee_mult_removed",
+    "algosdk": "^1.2.1",
     "msgpack-lite": "github:algorand/msgpack-lite",
     "node-cmdline-parser": "^1.0.2",
     "node-fetch": "^2.6.0",
