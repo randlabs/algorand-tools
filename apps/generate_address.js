@@ -1,4 +1,5 @@
 const algosdk = require('algosdk');
+const tools = require('../index');
 const cmdline = require('node-cmdline-parser');
 
 //------------------------------------------------------------------------------
@@ -31,11 +32,7 @@ async function main() {
 			console.log("-----------------------------------------");
 		}
 
-		let multiSigAddr = algosdk.multisigAddress({
-			version: 1,
-			threshold: options.required,
-			addrs: addresses
-		});
+		let multiSigAddr = tools.addresses.generateMultisig(addresses, options.required);
 		console.log("Multi-sig Account: " + multiSigAddr);
 	}
 	else {
