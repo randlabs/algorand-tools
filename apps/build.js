@@ -16,6 +16,17 @@ main().then(() => {
 async function main() {
 	let options = await parseCmdLineParams();
 
+	if (options.first_round < 0 || (typeof options.last_round !== 'undefined' && options.last_round < 0)) {
+		let round = await tools.node.getLastRound();
+
+		if (options.first_round < 0) {
+			options.first_round = round + (-options.first_round);
+		}
+		if (typeof options.last_round !== 'undefined' && options.last_round < 0) {
+			options.last_round = round + (-options.last_round);
+		}
+	}
+
 	let pay_tx = await tools.tx.createPaymentTransaction({
 		from: options.from_address,
 		to: options.to_address,
@@ -83,12 +94,40 @@ function parseCmdLineParams() {
 			reject(new Error("ERROR: Missing value in '--first-round' parameter."));
 			return;
 		}
-		first_round = parseInt(first_round, 10);
+		if (first_round.startsWith('+')) {
+			first_round = parseInt(first_round.substr(1), 10);
+			if (first_round < 0) {
+				reject(new Error("ERROR: Invalid value in '--first-round' parameter."));
+				return;
+			}
+			first_round = -first_round;
+		}
+		else {
+			first_round = parseInt(first_round, 10);
+			if (first_round < 0) {
+				reject(new Error("ERROR: Invalid value in '--first-round' parameter."));
+				return;
+			}
+		}
 
 		let last_round;
 		if (cmdline.keyexists('last-round')) {
 			last_round = cmdline.get('last-round');
-			last_round = (last_round !== null) ? parseInt(last_round, 10) : 0;
+			if (last_round.startsWith('+')) {
+				last_round = parseInt(last_round.substr(1), 10);
+				if (last_round < 0) {
+					reject(new Error("ERROR: Invalid value in '--last-round' parameter."));
+					return;
+				}
+				last_round = -last_round;
+			}
+			else {
+				last_round = parseInt(last_round, 10);
+				if (last_round < 0) {
+					reject(new Error("ERROR: Invalid value in '--last-round' parameter."));
+					return;
+				}
+			}
 		}
 
 		let close_address;
