@@ -1,0 +1,26 @@
+{
+  "name": "algorand-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "algorand",
+    "tool",
+    "utilities"
+  ],
+  "author": "RandLabs",
+  "license": "MIT",
+  "dependencies": {
+    "algosdk": "^1.2.1",
+    "msgpack-lite": "github:algorand/msgpack-lite",
+    "node-cmdline-parser": "^1.0.2",
+    "node-fetch": "^2.6.0",
+    "readline-sync": "^1.4.9"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0"
+  }
+}
