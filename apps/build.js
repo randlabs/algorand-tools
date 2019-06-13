@@ -14,6 +14,28 @@ main().then(() => {
 });
 
 async function main() {
+	if (cmdline.keyexists("help")) {
+		console.log("Use: build.js parameters [options]");
+		console.log("");
+		console.log("Where 'parameters' are:");
+		console.log("  --output filename.tx      : Transaction output filename");
+		console.log("  --from {ADDRESS}          : Sender address");
+		console.log("  --to {ADDRESS}            : Receiver address");
+		console.log("  --amount {NUMBER}         : Amount to send in microalgos");
+		console.log("  --fee {NUMBER}            : Fees to pay (the value is multiplied by the tx size).");
+		console.log("  --first-round [+]{NUMBER} : First round to send transaction. Use +NUMBER to calculate the round based on the network's current round.");
+		console.log("");
+		console.log("And 'options' are:");
+		console.log("  --note {BASE64-STRING}         : Not to add to transaction.");
+		console.log("  --last-round [+]{NUMBER}       : First round to send transaction. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.");
+		console.log("  --close {ADDRESS}              : Close address");
+		console.log("  --genesis-hash {BASE64-STRING} : Network's genesis hash. Retrieved from network if not passed.");
+		console.log("  --genesis-id {STRING}          : Network's genesis ID. Retrieved from network if not passed.");
+		console.log("  --node-url http://address:port : Node's url if a access to network is required. If not specified the ALGOTOOLS_NODE_URL environment variable is used.");
+		console.log("  --node-api-token token         : Node's api token if a access to network is required. If not specified the ALGOTOOLS_NODE_API_TOKEN environment variable is used.");
+		return;
+	}
+
 	let options = await parseCmdLineParams();
 
 	if (options.first_round < 0 || (typeof options.last_round !== 'undefined' && options.last_round < 0)) {

@@ -1,16 +1,31 @@
 {
   "name": "algorand-tools",
   "version": "1.0.0",
-  "description": "",
+  "description": "Utilities for handling Algorand transactions",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-bin:build": "pkg -t node10-win-x86,node10-win-x64,node10-linux-x64 --output ./bin/build ./apps/build.js",
+    "build-bin:sign": "pkg -t node10-win-x86,node10-win-x64,node10-linux-x64 --output ./bin/sign ./apps/sign.js",
+    "build-bin:genaddr": "pkg -t node10-win-x86,node10-win-x64,node10-linux-x64 --output ./bin/genaddr ./apps/generate_address.js",
+    "build-bin:merge": "pkg -t node10-win-x86,node10-win-x64,node10-linux-x64 --output ./bin/merge ./apps/merge.js",
+    "build-bin:rawsign": "pkg -t node10-win-x86,node10-win-x64,node10-linux-x64 --output ./bin/rawsign ./apps/raw_signer.js",
+    "build-bin:send": "pkg -t node10-win-x86,node10-win-x64,node10-linux-x64 --output ./bin/send ./apps/send.js",
+    "build-bin": "npm run build-bin:build & npm run build-bin:sign & npm run build-bin:genaddr & npm run build-bin:merge & npm run build-bin:rawsign & npm run build-bin:send"
   },
   "keywords": [
     "algorand",
     "tool",
     "utilities"
   ],
+  "bin": {
+    "build": "./apps/build.js",
+    "dump": "./apps/dump.js",
+    "generate_address": "./apps/generate_address.js",
+    "merge": "./apps/merge.js",
+    "raw_signer": "./apps/raw_signer.js",
+    "send": "./apps/send.js",
+    "sign": "./apps/sign.js"
+  },
   "author": "RandLabs",
   "license": "MIT",
   "dependencies": {
