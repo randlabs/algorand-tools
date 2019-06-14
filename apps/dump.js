@@ -14,6 +14,16 @@ main().then(() => {
 });
 
 async function main() {
+	if (cmdline.keyexists("help")) {
+		console.log("Use: dump.js parameters [index]");
+		console.log("");
+		console.log("Where 'parameters' are:");
+		console.log("  --input filename.tx      : Transaction input for taking transactions");
+		console.log("  --from {ADDRESS}          : First Transaction index");
+		console.log("  --to {ADDRESS}            : Last Transaction index");
+		console.log("  --index {NUMBER}         : Single Transaction index to dump");
+		return;
+	}
 	let options = await parseCmdLineParams();
 
 	let txs = await tools.storage.loadTransactionsFromFile(options.input);

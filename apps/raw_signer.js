@@ -19,6 +19,19 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
+	if (cmdline.keyexists("help")) {
+		console.log("Use: raw_signer.js parameters");
+		console.log("");
+		console.log("Where 'parameters' are:");
+		console.log("  --data               : Data to be signed, does not match with filename");
+		console.log("  --filename filename.tx        : Filename which contains data for be signed, does not match with data");
+		console.log("  --output filename.tx        : Signature output filename");
+		console.log("  --mnemonic Array[string]        : Mnemonic for signing");
+		console.log("  --address {ADDRESS}        : Address of signer");
+		console.log("  --signature {ADDRESS}        : Signature ");
+		console.log("  --verify {ADDRESS}        : Verify");
+		return;
+	}
 	let hash;
 
 	let options = await parseCmdLineParams();

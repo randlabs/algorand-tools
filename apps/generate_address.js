@@ -17,6 +17,18 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
+	if (cmdline.keyexists("help")) {
+		console.log("Use: generate_address.js  parameters [options]");
+		console.log("");
+		console.log("Where 'parameters' are:");
+		console.log("  --multisig               : Enable generate an multisig address");
+		console.log("  --count {ADDRESS}        : Number of addresses");
+		console.log("");
+		console.log("Options in Multisig are:");
+		console.log("  --size {NUMBER} (if multisig)         : Amount of addresses envolved in the multi sig.");
+		console.log("  --req {ADDRESS}                       : Required signatures for being valid");
+		return;
+	}
 	let options = await parseCmdLineParams();
 
 	if (options.multisig) {

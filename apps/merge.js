@@ -17,6 +17,15 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
+	if (cmdline.keyexists("help")) {
+		console.log("Use: merge.js parameters");
+		console.log("");
+		console.log("Where 'parameters' are:");
+		console.log("  --output filename.tx         : Transaction output filename");
+		console.log("  --source filename.tx         : File for taking txs to merge");
+		console.log("  --merge-signatures {Boolean} : Merge signatures");
+		return;
+	}
 	let options = await parseCmdLineParams();
 
 	let file_list = tools.utils.getFileList(options.source.folder, options.source.filemask);
@@ -28,7 +37,7 @@ async function main() {
 		txs = txs.concat(_txs);
 	}
 	if (txs.length == 0) {
-		throw new Error('NOTHING TO PROCESS!!');
+		throw new Error('Nothing to process');
 	}
 
 	if (options.mergesignatures) {

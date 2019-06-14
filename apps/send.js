@@ -14,6 +14,12 @@ main().then(() => {
 });
 
 async function main() {
+	if (cmdline.keyexists("help")) {
+		console.log("Use: send.js multisig input");
+		console.log("");
+		console.log("  --input filename  : Filename with transactions to send");
+		return;
+	}
 	let options = await parseCmdLineParams();
 
 	let txs = await tools.storage.loadTransactionsFromFile(options.input);
