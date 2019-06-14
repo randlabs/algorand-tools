@@ -26,13 +26,15 @@ async function main() {
 		console.log("  --first-round [+]{NUMBER} : First round to send transaction. Use +NUMBER to calculate the round based on the network's current round.");
 		console.log("");
 		console.log("And 'options' are:");
-		console.log("  --note {BASE64-STRING}         : Not to add to transaction.");
-		console.log("  --last-round [+]{NUMBER}       : First round to send transaction. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.");
-		console.log("  --close {ADDRESS}              : Close address");
-		console.log("  --genesis-hash {BASE64-STRING} : Network's genesis hash. Retrieved from network if not passed.");
-		console.log("  --genesis-id {STRING}          : Network's genesis ID. Retrieved from network if not passed.");
-		console.log("  --node-url http://address:port : Node's url if a access to network is required. If not specified the ALGOTOOLS_NODE_URL environment variable is used.");
-		console.log("  --node-api-token token         : Node's api token if a access to network is required. If not specified the ALGOTOOLS_NODE_API_TOKEN environment variable is used.");
+		console.log("  --note {BASE64-STRING}                      : Not to add to transaction.");
+		console.log("  --last-round [+]{NUMBER}                    : First round to send transaction. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.");
+		console.log("  --close {ADDRESS}                           : Close address");
+		console.log("  --genesis-hash {BASE64-STRING}              : Network's genesis hash. Retrieved from network if not passed.");
+		console.log("  --genesis-id {STRING}                       : Network's genesis ID. Retrieved from network if not passed.");
+		console.log("  --multisig-threshold {NUMBER}               : Required signatures for a multsig account template.");
+		console.log("  --multisig-addresses {ADDRESS[,ADDRESS...]} : A comma separated list of addresses that make up the multisig account template.");
+		console.log("  --node-url http://address:port              : Node's url if a access to network is required. If not specified the ALGOTOOLS_NODE_URL environment variable is used.");
+		console.log("  --node-api-token token                      : Node's api token if a access to network is required. If not specified the ALGOTOOLS_NODE_API_TOKEN environment variable is used.");
 		return;
 	}
 
@@ -62,6 +64,10 @@ async function main() {
 		note: options.note
 	});
 
+	if (options.multisig_threshold && options.multisig_addresses) {
+		tools.sign.addSignatureTemplate(pay_tx, options.multisig_threshold, options.multisig_addresses);
+	}
+
 	await tools.storage.saveTransactionsToFile(options.output, [ pay_tx ]);
 	console.log("Generated transaction ID: " + tools.tx.getTxID(pay_tx));
 }
@@ -87,8 +93,10 @@ function parseCmdLineParams() {
 
 		let from_address = cmdline.get('from');
 		if (from_address === null) {
-			reject(new Error("ERROR: Missing value in '--from' parameter."));
-			return;
+			if (!cmdline.keyexists('multisig-addresses')) {
+				reject(new Error("ERROR: Missing value in '--from' parameter."));
+				return;
+			}
 		}
 
 		let to_address = cmdline.get('to');
@@ -172,6 +180,61 @@ function parseCmdLineParams() {
 			note = cmdline.get('note');
 		}
 
+		let multisig_threshold;
+		if (cmdline.keyexists('multisig-threshold')) {
+			multisig_threshold = cmdline.get('multisig-threshold');
+			if (multisig_threshold !== null) {
+				multisig_threshold = parseInt(multisig_threshold, 10);
+				if (isNaN(multisig_threshold) || multisig_threshold < 1) {
+					reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be greater than or equal to 1."));
+					return;
+				}
+			}
+		}
+
+		let multisig_addresses;
+		if (cmdline.keyexists('multisig-addresses')) {
+			multisig_addresses = cmdline.get('multisig-addresses');
+			if (multisig_addresses !== null) {
+				multisig_addresses = multisig_addresses.split(',');
+				if (multisig_addresses.length == 0) {
+					reject(new Error("ERROR: Invalid value in '--multisig-addresses' parameter. It must be a comma-separated list of addresses."));
+					return;
+				}
+				for (let idx = 0; idx < multisig_addresses.length; idx++) {
+					multisig_addresses[idx] = multisig_addresses[idx].trim();
+					if (multisig_addresses[idx].length == 0) {
+						reject(new Error("ERROR: Invalid value in '--multisig-addresses' parameter. Addresses can not be empty."));
+						return;
+					}
+				}
+
+				if (multisig_threshold > multisig_addresses.length) {
+					reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be less than or equal to the number of addresses."));
+					return;
+				}
+			}
+		}
+
+		if (multisig_threshold && (!multisig_addresses)) {
+			reject(new Error("ERROR: '--multisig-addresses' parameter must be specified if '--multisig-threshold' is present."));
+			return;
+		}
+		if (multisig_addresses && (!multisig_threshold)) {
+			reject(new Error("ERROR: '--multisig-threshold' parameter must be specified if '--multisig-addresses' is present."));
+			return;
+		}
+		if (multisig_addresses && multisig_threshold) {
+			let multisig_addr = tools.addresses.generateMultisig(multisig_addresses, multisig_threshold);
+			if (from_address === null) {
+				from_address = multisig_addr;
+			}
+			else if (from_address != multisig_addr) {
+				reject(new Error("ERROR: Sender address is not related to the multisig addresses."));
+				return;
+			}
+		}
+
 		resolve({
 			output,
 			from_address,
@@ -183,7 +246,9 @@ function parseCmdLineParams() {
 			close_address,
 			genesis_hash,
 			genesis_id,
-			note
+			note,
+			multisig_threshold,
+			multisig_addresses
 		});
 	});
 }
