@@ -40,6 +40,24 @@ async function main() {
 	while (loop) {
 		let last_round = await tools.node.getLastRound();
 
+		let rounds_to_wait = null;
+		for (let idx = 0; idx < txs.length; idx++) {
+			if (!txs_status[idx].processed) {
+				loop = true;
+				if (txs_status[idx].tx_info.first_round >= last_round) {
+					let diff = txs_status[idx].tx_info.first_round - last_round;
+
+					if (rounds_to_wait === null || diff < rounds_to_wait) {
+						rounds_to_wait = diff;
+					}
+				}
+			}
+		}
+		if (rounds_to_wait !== null) {
+			let msg = "Next in " + rounds_to_wait.toString() + " round" + ((rounds_to_wait != 1) ? "s" : "") + "   ";
+			process.stdout.write(msg + "\b".repeat(msg.length));
+		}
+
 		loop = false;
 		for (let idx = 0; idx < txs.length; idx++) {
 			if (!txs_status[idx].processed) {
@@ -50,17 +68,18 @@ async function main() {
 				else if (last_round >= txs_status[idx].tx_info.last_round) {
 					//wait
 					txs_status[idx].processed = true;
-					txs_status[idx].status_message = 'Due';
+					printStatus(txs_status[idx].tx_id, txs_status[idx].tx_info, 'Due');
 				}
 				else {
 					//can send now
 					txs_status[idx].processed = true;
+					console.log("Sending transaction " + txs_status[idx].tx_id);
 					try {
 						await tools.node.sendTransaction(txs[idx]);
-						txs_status[idx].status_message = 'Successfully sent';
+						printStatus(txs_status[idx].tx_id, txs_status[idx].tx_info, 'Successfully sent');
 					}
 					catch (err) {
-						txs_status[idx].status_message = err.stack;
+						printStatus(txs_status[idx].tx_id, txs_status[idx].tx_info, err.message);
 					}
 				}
 			}
@@ -73,19 +92,17 @@ async function main() {
 		}
 	}
 
-	//dump status
+	//dump not processed transactions
 	for (let idx = 0; idx < txs.length; idx++) {
-		let status;
-		if (txs_status[idx].processed) {
-			status = txs_status[idx].status_message;
+		if (!txs_status[idx].processed) {
+			printStatus(txs_status[idx].tx_id, txs_status[idx].tx_info, 'Not processed');
 		}
-		else {
-			status = 'Not processed';
-		}
-		console.log(txs_status[idx].tx_id + ': ' + status + ' [From:' + txs_status[idx].tx_info.from +
-						' / To:' + txs_status[idx].tx_info.to + ' / Amount:' + txs_status[idx].tx_info.amount.toString() +
-						' / Fee:' + txs_status[idx].tx_info.fee.toString() + ' / fr:' + txs_status[idx].tx_info.first_round.toString() + ']');
 	}
+}
+
+function printStatus(tx_id, tx_info, status) {
+	console.log(tx_id + ': ' + status + ' [From:' + tx_info.from + ' / To:' + tx_info.to + ' / Amount:' + tx_info.amount.toString() +
+				' / Fee:' + tx_info.fee.toString() + ' / fr:' + tx_info.first_round.toString() + ']');
 }
 
 function parseCmdLineParams() {
