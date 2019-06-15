@@ -44,10 +44,10 @@ async function main() {
 		for (let idx = 0; idx < txs.length; idx++) {
 			if (!txs_status[idx].processed) {
 				loop = true;
-				if (txs_status[idx].tx_info.first_round < last_round) {
+				if (txs_status[idx].tx_info.first_round > last_round) {
 					//wait
 				}
-				else if (txs_status[idx].tx_info.first_round > last_round) {
+				else if (last_round >= txs_status[idx].tx_info.last_round) {
 					//wait
 					txs_status[idx].processed = true;
 					txs_status[idx].status_message = 'Due';
