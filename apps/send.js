@@ -15,8 +15,9 @@ main().then(() => {
 
 async function main() {
 	if (cmdline.keyexists("help")) {
-		console.log("Use: send.js multisig input");
+		console.log("Use: send.js parameters");
 		console.log("");
+		console.log("Where 'parameters' are:");
 		console.log("  --input filename.tx : Filename with transactions to send.");
 		console.log("  --wait              : Wait for the network's current round to match transactions' first round if required.");
 		return;
@@ -37,7 +38,7 @@ async function main() {
 
 	let loop = true;
 	while (loop) {
-		let last_round = tools.node.getLastRound();
+		let last_round = await tools.node.getLastRound();
 
 		loop = false;
 		for (let idx = 0; idx < txs.length; idx++) {
