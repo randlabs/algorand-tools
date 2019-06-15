@@ -20,21 +20,25 @@ main().then(() => {
 
 async function main() {
 	if (cmdline.keyexists("help")) {
-		console.log("Use: raw_signer.js parameters");
+		console.log("Use: raw_signer.js sign-parameters");
+		console.log(" Or: raw_signer.js --verify verify-parameters");
 		console.log("");
-		console.log("Where 'parameters' are:");
-		console.log("  --data               : Data to be signed, does not match with filename");
-		console.log("  --filename filename.tx        : Filename which contains data for be signed, does not match with data");
-		console.log("  --output filename.tx        : Signature output filename");
-		console.log("  --mnemonic Array[string]        : Mnemonic for signing");
-		console.log("  --address {ADDRESS}        : Address of signer");
-		console.log("  --signature {ADDRESS}        : Signature ");
-		console.log("  --verify {ADDRESS}        : Verify");
+		console.log("Where the common parameters are:");
+		console.log("  --data {TEXT}       : Sign/verify the passed data. Cannot be used with '--filename'.");
+		console.log("  --filename filename : File to sign/verify. Cannot be used with '--data'.");
+		console.log("");
+		console.log("'sign-parameters' are:");
+		console.log("  --output filename.sig   : Signature file to generate.");
+		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. (enclose the 25-word passphrase in quotes)");
+		console.log("");
+		console.log("And 'verify-parameters' are:");
+		console.log("  --signature filename.sig : Signature file to validate.");
+		console.log("  --address {ADDRESS}      : Address of signer");
 		return;
 	}
-	let hash;
 
 	let options = await parseCmdLineParams();
+	let hash;
 
 	if (options.filename) {
 		hash = getHashOfFile(options.filename);

@@ -21,11 +21,12 @@ async function main() {
 		console.log("Use: merge.js parameters");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --output filename.tx         : Transaction output filename");
-		console.log("  --source filename.tx         : File for taking txs to merge");
-		console.log("  --merge-signatures {Boolean} : Merge signatures");
+		console.log("  --output filename.tx         : File to store the merged transactions.");
+		console.log("  --source file-or-folder-mask : Folder and/or file with transactions to merge. Wildcards accepted on filename.");
+		console.log("  --merge-signatures           : Merge signatures if two or more transactions match. If this flag is not specified, transactions are just concatenated.");
 		return;
 	}
+
 	let options = await parseCmdLineParams();
 
 	let file_list = tools.utils.getFileList(options.source.folder, options.source.filemask);

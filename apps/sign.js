@@ -18,9 +18,9 @@ async function main() {
 		console.log("Use: sign.js parameters [options]");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --input filename.tx     : Transaction(s) input filename");
-		console.log("  --output filename.tx    : Transaction(s) output filename");
-		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic (enclose the 25-word passphrase in quotes)");
+		console.log("  --input filename.tx     : Transaction(s) input filename.");
+		console.log("  --output filename.tx    : Transaction(s) output filename.");
+		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. (enclose the 25-word passphrase in quotes)");
 		console.log("");
 		console.log("And 'options' are:");
 		console.log("  --multisig-threshold {NUMBER}               : Required signatures for a multsig account.");

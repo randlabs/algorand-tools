@@ -18,17 +18,18 @@ main().then(() => {
 
 async function main() {
 	if (cmdline.keyexists("help")) {
-		console.log("Use: generate_address.js  parameters [options]");
+		console.log("Use: generate_address.js single-account-parameters");
+		console.log(" Or: generate_address.js  --multisig multisig-account-parameters");
 		console.log("");
-		console.log("Where 'parameters' are:");
-		console.log("  --multisig               : Enable generate an multisig address");
-		console.log("  --count {ADDRESS}        : Number of addresses");
+		console.log("Where 'single-account-parameters' is:");
+		console.log("  --count {NUMBER} : Number of addresses to generate.");
 		console.log("");
-		console.log("Options in Multisig are:");
-		console.log("  --size {NUMBER} (if multisig)         : Amount of addresses envolved in the multi sig.");
-		console.log("  --req {ADDRESS}                       : Required signatures for being valid");
+		console.log("And 'multisig-account-parameters' are:");
+		console.log("  --size {NUMBER} : Amount of addresses envolved in the multisig account.");
+		console.log("  --req {NUMBER}  : Required amount signatures to validate a multisig transaction.");
 		return;
 	}
+
 	let options = await parseCmdLineParams();
 
 	if (options.multisig) {
