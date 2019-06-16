@@ -119,10 +119,10 @@ function print_tx(_tx, tx_idx) {
 		console.log("  Fee:", _tx.txn.fee);
 	}
 	if (typeof _tx.txn.fv != "undefined") {
-		console.log("  First block:", _tx.txn.fv);
+		console.log("  First round:", _tx.txn.fv);
 	}
 	if (typeof _tx.txn.lv != "undefined") {
-		console.log("  Last block:", _tx.txn.lv);
+		console.log("  Last round:", _tx.txn.lv);
 	}
 	if (typeof _tx.txn.snd != "undefined" && Buffer.isBuffer(_tx.txn.snd)) {
 		sender = tools.addresses.encode(_tx.txn.snd);
@@ -138,7 +138,7 @@ function print_tx(_tx, tx_idx) {
 		console.log("  Genesis ID:", _tx.txn.gen);
 	}
 	if (typeof _tx.txn.gh != "undefined" && Buffer.isBuffer(_tx.txn.snd)) {
-		console.log("  Genesis hash:", tools.utils.buffer2string(_tx.txn.gh, 32));
+		console.log("  Genesis hash:", _tx.txn.gh.toString('base64'));
 	}
 
 	if (typeof _tx.sig != "undefined" && Buffer.isBuffer(_tx.sig)) {
@@ -174,6 +174,25 @@ function print_tx(_tx, tx_idx) {
 					console.log("        Sign:", tools.utils.buffer2string(_tx.msig.subsig[idx].s, 64), valid_msg);
 				}
 			}
+		}
+
+		if (sender && typeof _tx.msig.thr != "undefined" && typeof _tx.msig.subsig != "undefined") {
+			let addresses = [];
+
+			for (let idx = 0; idx < _tx.msig.subsig.length; idx++) {
+				if (typeof _tx.msig.subsig[idx].pk != "undefined") {
+					addresses.push(tools.addresses.encode(_tx.msig.subsig[idx].pk));
+				}
+			}
+			if (sender == tools.addresses.generateMultisig(addresses, _tx.msig.thr)) {
+				console.log("    Signers MATCH sender");
+			}
+			else {
+				console.log("    WARNING: Signers seems to mismatch sender");
+			}
+		}
+		else {
+			console.log("    Unable to verify if signers belong to sender");
 		}
 	}
 }
