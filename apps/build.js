@@ -28,7 +28,8 @@ async function main() {
 		console.log("And 'options' are:");
 		console.log("  --note {BASE64-STRING}                      : Not to add to transaction.");
 		console.log("  --last-round [+]{NUMBER}                    : First round to send transaction. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.");
-		console.log("  --close {ADDRESS}                           : Close address");
+		console.log("  --close {ADDRESS}                           : Close address.");
+		console.log("  --fixed-fee                                 : Fees are not multiplied by tx size.");
 		console.log("  --genesis-hash {BASE64-STRING}              : Network's genesis hash. Retrieved from network if not passed.");
 		console.log("  --genesis-id {STRING}                       : Network's genesis ID. Retrieved from network if not passed.");
 		console.log("  --multisig-threshold {NUMBER}               : Required signatures for a multsig account template.");
@@ -56,6 +57,7 @@ async function main() {
 		to: options.to_address,
 		amount: options.amount,
 		fee: options.fee,
+		feeIsFixed: options.feeIsFixed,
 		first_round: options.first_round,
 		last_round: options.last_round,
 		close: options.close_address,
@@ -118,6 +120,8 @@ function parseCmdLineParams() {
 			return;
 		}
 		fee = parseInt(fee, 10);
+
+		let feeIsFixed = cmdline.keyexists('fixed-fee');
 
 		let first_round = cmdline.get('first-round');
 		if (first_round === null) {
@@ -241,6 +245,7 @@ function parseCmdLineParams() {
 			to_address,
 			amount,
 			fee,
+			feeIsFixed,
 			first_round,
 			last_round,
 			close_address,
