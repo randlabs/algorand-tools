@@ -18,14 +18,14 @@ async function main() {
 		console.log("Use: sign.js parameters [options]");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --input filename.tx     : Transaction(s) input filename.");
-		console.log("  --output filename.tx    : Transaction(s) output filename.");
-		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. (enclose the 25-word passphrase in quotes)");
+		console.log("  --input {FILENAME}      : File with transactions to sign.");
+		console.log("  --output {FILENAME}     : Output file to create with signed transactions.");
+		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. Enclose the 25-word passphrase in quotes.");
 		console.log("");
 		console.log("And 'options' are:");
 		console.log("  --multisig-threshold {NUMBER}               : Required signatures for a multsig account.");
 		console.log("  --multisig-addresses {ADDRESS[,ADDRESS...]} : A comma separated list of addresses that make up the multisig account. Required only for the first signature.");
-		console.log("  --remove-existing                           : Removed any previously existing signature from the transaction.");
+		console.log("  --remove-existing                           : Remove any previously existing signature from the transaction.");
 		return;
 	}
 

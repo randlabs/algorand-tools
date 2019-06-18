@@ -41,8 +41,8 @@ $ node apps/build.js parameters [options]
 ##### Options:
 
 * `--note {BASE64-STRING}` : Note to add.
-* `--last-round last-round [+]{NUMBER}` : Last round where the transaction should be sent. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round
-* `--close  {ADDRESS}` : Close address. Send remaining account funds to this address.
+* `--last-round last-round [+]{NUMBER}` : Last round where the transaction should be sent. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.
+* `--close  {ADDRESS}` : Close address. Remaining account funds will be transferred to this address.
 * `--genesis-hash  {BASE64-STRING}` : Network's genesis hash. Retrieved from network if not specified.
 * `--genesis-id {STRING}` : Network's genesis ID. Retrieved from network if not stated.
 * `--multisig-threshold {NUMBER}` : Required signatures for a multsig account template.
@@ -142,7 +142,7 @@ $ node apps/raw_signer.js --verify verify-parameters
 
 * `--data {TEXT}` : Verify the passed data. Cannot be used with '--filename'.
 * `--filename {FILENAME}` : File to verify. Cannot be used with '--data'.
-* `--signature {FILENAME.sig}` : Signature file to validate.
+* `--signature {FILENAME}` : Signature file to validate.
 * `--address {ADDRESS}` : Address of signer.
 
 ## send.js
@@ -156,4 +156,4 @@ $ node apps/send.js parameters
 #### Parameters
 
 * `--input {FILENAME}` : File with transactions to send.
-* `--wait {NUMBER}` : Wait for the network's current round to match transactions' first round if required.
+* `--wait` : Wait for the network's current round to match transactions' first round if required.

@@ -18,24 +18,24 @@ async function main() {
 		console.log("Use: build.js parameters [options]");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --output filename.tx      : Transaction output filename");
-		console.log("  --from {ADDRESS}          : Sender address");
-		console.log("  --to {ADDRESS}            : Receiver address");
-		console.log("  --amount {NUMBER}         : Amount to send in microalgos");
-		console.log("  --fee {NUMBER}            : Fees to pay (the value is multiplied by the tx size).");
-		console.log("  --first-round [+]{NUMBER} : First round to send transaction. Use +NUMBER to calculate the round based on the network's current round.");
+		console.log("  --output {FILENAME}       : Transaction file to create.");
+		console.log("  --from {ADDRESS}          : Sender address.");
+		console.log("  --to {ADDRESS}            : Receiver address.");
+		console.log("  --amount {NUMBER}         : Amount to send in microalgos.");
+		console.log("  --fee {NUMBER}            : Fees to pay (the value is multiplied by the transaction size unless `--fixed-fee` is specified).");
+		console.log("  --first-round [+]{NUMBER} : First round where the transaction should be sent. Use +NUMBER to calculate the round based on the network's current round.");
 		console.log("");
 		console.log("And 'options' are:");
-		console.log("  --note {BASE64-STRING}                      : Not to add to transaction.");
-		console.log("  --last-round [+]{NUMBER}                    : First round to send transaction. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.");
-		console.log("  --close {ADDRESS}                           : Close address.");
-		console.log("  --fixed-fee                                 : Fees are not multiplied by tx size.");
-		console.log("  --genesis-hash {BASE64-STRING}              : Network's genesis hash. Retrieved from network if not passed.");
-		console.log("  --genesis-id {STRING}                       : Network's genesis ID. Retrieved from network if not passed.");
+		console.log("  --note {BASE64-STRING}                      : Note to add.");
+		console.log("  --last-round [+]{NUMBER}                    : Last round where the transaction should be sent. Defaults to 1000 after first round. Use +NUMBER to calculate the round based on the network's current round.");
+		console.log("  --close {ADDRESS}                           : Close address. Remaining account funds will be transferred to this address.");
+		console.log("  --genesis-hash {BASE64-STRING}              : Network's genesis hash. Retrieved from network if not specified.");
+		console.log("  --genesis-id {STRING}                       : Network's genesis ID. Retrieved from network if not stated.");
 		console.log("  --multisig-threshold {NUMBER}               : Required signatures for a multsig account template.");
 		console.log("  --multisig-addresses {ADDRESS[,ADDRESS...]} : A comma separated list of addresses that make up the multisig account template.");
-		console.log("  --node-url http://address:port              : Node's url if a access to network is required. If not specified the ALGOTOOLS_NODE_URL environment variable is used.");
-		console.log("  --node-api-token token                      : Node's api token if a access to network is required. If not specified the ALGOTOOLS_NODE_API_TOKEN environment variable is used.");
+		console.log("  --fixed-fee                                 : Sets the fee as a fixed value (does not multiply fee by the size of the transaction).");
+		console.log("  --node-url http://address:port              : Node's url if an access to the network is required. If not specified the ALGOTOOLS_NODE_URL environment variable is used.");
+		console.log("  --node-api-token {TOKEN}                    : Node's api token if an access to network is required. If not specified the `ALGOTOOLS_NODE_API_TOKEN` environment variable is used.");
 		return;
 	}
 

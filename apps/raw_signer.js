@@ -23,17 +23,17 @@ async function main() {
 		console.log("Use: raw_signer.js sign-parameters");
 		console.log(" Or: raw_signer.js --verify verify-parameters");
 		console.log("");
-		console.log("Where the common parameters are:");
-		console.log("  --data {TEXT}       : Sign/verify the passed data. Cannot be used with '--filename'.");
-		console.log("  --filename filename : File to sign/verify. Cannot be used with '--data'.");
-		console.log("");
-		console.log("'sign-parameters' are:");
-		console.log("  --output filename.sig   : Signature file to generate.");
-		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. (enclose the 25-word passphrase in quotes)");
+		console.log("Where 'sign-parameters' are:");
+		console.log("  --data {TEXT}           : Sign the passed data. Cannot be used with '--filename'.");
+		console.log("  --filename {FILENAME}   : File to sign. Cannot be used with '--data'.");
+		console.log("  --output {FILENAME}     : Signature file to generate.");
+		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. Enclose the 25-word passphrase in quotes.");
 		console.log("");
 		console.log("And 'verify-parameters' are:");
-		console.log("  --signature filename.sig : Signature file to validate.");
-		console.log("  --address {ADDRESS}      : Address of signer");
+		console.log("  --data {TEXT}          : Verify the passed data. Cannot be used with '--filename'.");
+		console.log("  --filename {FILENAME}  : File to verify. Cannot be used with '--data'.");
+		console.log("  --signature {FILENAME} : Signature file to validate.");
+		console.log("  --address {ADDRESS}    : Address of signer.");
 		return;
 	}
 

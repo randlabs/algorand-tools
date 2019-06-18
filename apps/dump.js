@@ -18,10 +18,10 @@ async function main() {
 		console.log("Use: dump.js parameters");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --input filename.tx : Transaction input for taking transactions.");
-		console.log("  --from {NUMBER}     : First transaction index. Starts at 1.");
-		console.log("  --to {NUMBER}       : Last transaction index.");
-		console.log("  --index {NUMBER}    : Single transaction index to dump.");
+		console.log("  --input {FILENAME} : File with transactions to show.");
+		console.log("  --from {NUMBER}    : First transaction index. Starts at 1.");
+		console.log("  --to {NUMBER}      : Last transaction index.");
+		console.log("  --index {NUMBER}   : Dumps a single transaction located at the specified index.");
 		return;
 	}
 
