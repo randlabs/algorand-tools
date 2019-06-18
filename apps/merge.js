@@ -21,9 +21,9 @@ async function main() {
 		console.log("Use: merge.js parameters");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --output filename.tx         : File to store the merged transactions.");
-		console.log("  --source file-or-folder-mask : Folder and/or file with transactions to merge. Wildcards accepted on filename.");
-		console.log("  --merge-signatures           : Merge signatures if two or more transactions match. If this flag is not specified, transactions are just concatenated.");
+		console.log("  --source {FILENAME} or {FOLDERNAME} : Folder and/or file with transactions to merge. Wildcards accepted on filename.");
+		console.log("  --output {FILENAME}                 : File to store the merged transactions.");
+		console.log("  --merge-signatures                  : Merge signatures if two or more transactions matches. If this flag is not set, transactions are just concatenated.");
 		return;
 	}
 

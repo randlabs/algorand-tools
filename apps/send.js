@@ -18,8 +18,8 @@ async function main() {
 		console.log("Use: send.js parameters");
 		console.log("");
 		console.log("Where 'parameters' are:");
-		console.log("  --input filename.tx : Filename with transactions to send.");
-		console.log("  --wait              : Wait for the network's current round to match transactions' first round if required.");
+		console.log("  --input {FILENAME} : File with transactions to send.");
+		console.log("  --wait             : Wait for the network's current round to match transactions' first round if required.");
 		return;
 	}
 
