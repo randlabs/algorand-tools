@@ -1,4 +1,5 @@
 const cmdline = require('node-cmdline-parser');
+const path = require('path');
 const tools = require('../index');
 const rl = require('readline-sync');
 
@@ -15,6 +16,8 @@ main().then(() => {
 });
 
 async function main() {
+	let mnemonic_address;
+
 	if (cmdline.keyexists("help")) {
 		console.log("Use: sign.js parameters [options]");
 		console.log("");
@@ -37,6 +40,14 @@ async function main() {
 		options.mnemonic = rl.question('Enter mnemonic: ');
 	}
 
+	if (options.mnemonic) {
+		let decoded = tools.mnemonics.decode(options.mnemonic);
+		if (!decoded) {
+			throw new Error("ERROR: Invalid mnemonic.");
+		}
+		mnemonic_address = decoded.address;
+	}
+
 	for (let idx = 0; idx < options.input.length; idx++) {
 		console.log('Loading ' + options.input[idx] + '...');
 		let txs = await tools.storage.loadTransactionsFromFile(options.input[idx]);
@@ -48,11 +59,25 @@ async function main() {
 			if (options.remove_signature) {
 				tools.sign.removeAllSignatures(txs[tx_idx]);
 			}
-			tools.sign.addSignature(txs[idx], options.mnemonic, options.multisig_threshold, options.multisig_addresses);
+			tools.sign.addSignature(txs[tx_idx], options.mnemonic, options.multisig_threshold, options.multisig_addresses);
 		}
 
-		console.log('Saving ' + options.output[idx] + '...');
-		await tools.storage.saveTransactionsToFile(options.output[idx], txs);
+		let output_filename;
+		if (options.output !== null) {
+			output_filename = options.output[idx];
+		}
+		else {
+			let path_comps = path.parse(options.input[idx]);
+
+			output_filename = path.format({
+				dir: path_comps.dir,
+				name: path_comps.name + ((mnemonic_address) ? '-' + mnemonic_address.substr(0, 8) : ''),
+				ext: '.sig'
+			});
+		}
+
+		console.log('Saving ' + output_filename + '...');
+		await tools.storage.saveTransactionsToFile(output_filename, txs);
 	}
 }
 
@@ -100,10 +125,6 @@ function parseCmdLineParams() {
 			if (output !== null) {
 				reject(new Error("ERROR: Cannot use '--output' parameter if input is a folder or has wildcards."));
 				return;
-			}
-			output = [];
-			for (let filename of input) {
-				output.push(filename + '.sig');
 			}
 		}
 		else {
