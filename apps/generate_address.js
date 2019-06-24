@@ -71,7 +71,7 @@ function parseCmdLineParams() {
 				return;
 			}
 			size = parseInt(size, 10);
-			if (isNaN(size) || size < 1 || size > 1000) {
+			if (Number.isNaN(size) || size < 1 || size > 1000) {
 				reject(new Error("ERROR: Invalid value in '--size' parameter. It must be between 2 and 100."));
 				return;
 			}
@@ -82,7 +82,7 @@ function parseCmdLineParams() {
 				return;
 			}
 			required = parseInt(required, 10);
-			if (isNaN(required) || required < 1 || required > size) {
+			if (Number.isNaN(required) || required < 1 || required > size) {
 				reject(new Error("ERROR: Invalid value in '--req' parameter. It must be between 1 and 'size'."));
 				return;
 			}
@@ -100,7 +100,7 @@ function parseCmdLineParams() {
 				return;
 			}
 			count = parseInt(count, 10);
-			if (isNaN(count) || count < 1 || count > 1000) {
+			if (Number.isNaN(count) || count < 1 || count > 1000) {
 				reject(new Error("ERROR: Invalid value in '--count' parameter. It must be between 1 and 100"));
 				return;
 			}

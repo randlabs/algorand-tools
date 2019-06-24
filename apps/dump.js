@@ -63,7 +63,7 @@ function parseCmdLineParams() {
 		let last = null;
 		if (first !== null) {
 			first = parseInt(first, 10);
-			if (isNaN(first) || first < 1) {
+			if (Number.isNaN(first) || first < 1) {
 				reject(new Error("ERROR: Invalid value in '--first' parameter. It must be greater or equal to 1."));
 				return;
 			}
@@ -73,7 +73,7 @@ function parseCmdLineParams() {
 			first = cmdline.get('from');
 			if (first !== null) {
 				first = parseInt(first, 10);
-				if (isNaN(first) || first < 1) {
+				if (Number.isNaN(first) || first < 1) {
 					reject(new Error("ERROR: Invalid value in '--first' parameter. It must be greater or equal to 1."));
 					return;
 				}
@@ -85,7 +85,7 @@ function parseCmdLineParams() {
 			last = cmdline.get('to');
 			if (last !== null) {
 				last = parseInt(last, 10);
-				if (isNaN(last) || last < first) {
+				if (Number.isNaN(last) || last < first) {
 					reject(new Error("ERROR: Invalid value in '--to' parameter. It must be greater or equal to 'from'."));
 					return;
 				}
