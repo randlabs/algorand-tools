@@ -157,7 +157,7 @@ function parseCmdLineParams() {
 			multisig_threshold = cmdline.get('multisig-threshold');
 			if (multisig_threshold !== null) {
 				multisig_threshold = parseInt(multisig_threshold, 10);
-				if (isNaN(multisig_threshold) || multisig_threshold < 1) {
+				if (Number.isNaN(multisig_threshold) || multisig_threshold < 1) {
 					reject(new Error("ERROR: Invalid value in '--multisig-threshold' parameter. It must be greater than or equal to 1."));
 					return;
 				}
