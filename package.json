@@ -29,7 +29,11 @@
   "author": "RandLabs",
   "license": "MIT",
   "dependencies": {
+    "@ledgerhq/errors": "^4.63.2",
+    "@ledgerhq/hw-transport-node-hid": "^4.63.2",
     "algosdk": "^1.2.1",
+    "babel-polyfill": "^6.26.0",
+    "bn.js": "^4.11.8",
     "msgpack-lite": "github:algorand/msgpack-lite",
     "node-cmdline-parser": "^1.0.2",
     "node-fetch": "^2.6.0",
