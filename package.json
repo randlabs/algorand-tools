@@ -40,6 +40,7 @@
     "readline-sync": "^1.4.9"
   },
   "devDependencies": {
-    "eslint": "^5.16.0"
+    "eslint": "^5.16.0",
+    "jsdoc": "^3.6.2"
   }
 }
