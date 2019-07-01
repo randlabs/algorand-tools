@@ -140,6 +140,9 @@ function print_tx(_tx, tx_idx) {
 	if (typeof _tx.txn.gh != "undefined" && Buffer.isBuffer(_tx.txn.snd)) {
 		console.log("  Genesis hash:", _tx.txn.gh.toString('base64'));
 	}
+	if (typeof _tx.txn.close != "undefined" && Buffer.isBuffer(_tx.txn.close)) {
+		console.log("  Close address:", tools.addresses.encode(_tx.txn.close));
+	}
 
 	if (typeof _tx.sig != "undefined" && Buffer.isBuffer(_tx.sig)) {
 		let valid_msg = tools.sign.verifySignature(_tx, _tx.sig, sender) ? "(VALID)" : "(INVALID!!!!)";

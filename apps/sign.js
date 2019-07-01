@@ -2,6 +2,7 @@ const cmdline = require('node-cmdline-parser');
 const path = require('path');
 const tools = require('../index');
 const rl = require('readline-sync');
+const LedgerHQ = require('../lib/helpers/ledger');
 
 //------------------------------------------------------------------------------
 
@@ -17,6 +18,7 @@ main().then(() => {
 
 async function main() {
 	let mnemonic_address;
+	let device;
 
 	if (cmdline.keyexists("help")) {
 		console.log("Use: sign.js parameters [options]");
@@ -27,6 +29,7 @@ async function main() {
 		console.log("");
 		console.log("And 'options' are:");
 		console.log("  --mnemonic \"{MNEMONIC}\"                     : Signer's mnemonic. Enclose the 25-word passphrase in quotes. If not provided, the app will ask for it.");
+		console.log("  --ledger                                    : Use an USB plugged Ledger device to sign the transactions.");
 		console.log("  --multisig-threshold {NUMBER}               : Required signatures for a multsig account.");
 		console.log("  --multisig-addresses {ADDRESS[,ADDRESS...]} : A comma separated list of addresses that make up the multisig account. Required only for the first signature.");
 		console.log("  --remove-existing                           : Remove any previously existing signature from the transaction.");
@@ -35,12 +38,16 @@ async function main() {
 
 	let options = await parseCmdLineParams();
 
-	if (!(options.remove_signature || options.mnemonic)) {
+	if (!(options.remove_signature || options.mnemonic || options.use_ledger)) {
 		//ask for mnemonic
 		options.mnemonic = rl.question('Enter mnemonic: ');
 	}
 
-	if (options.mnemonic) {
+	if (options.use_ledger) {
+		device = new LedgerHQ.LedgerHQ();
+		mnemonic_address = await device.getAddress();
+	}
+	else if (options.mnemonic) {
 		let decoded = tools.mnemonics.decode(options.mnemonic);
 		if (!decoded) {
 			throw new Error("ERROR: Invalid mnemonic.");
@@ -59,7 +66,7 @@ async function main() {
 			if (options.remove_signature) {
 				tools.sign.removeAllSignatures(txs[tx_idx]);
 			}
-			tools.sign.addSignature(txs[tx_idx], options.mnemonic, options.multisig_threshold, options.multisig_addresses);
+			await tools.sign.addSignature(txs[tx_idx], (device) ? device : options.mnemonic, options.multisig_threshold, options.multisig_addresses);
 		}
 
 		let output_filename;
@@ -152,6 +159,8 @@ function parseCmdLineParams() {
 
 		let mnemonic = cmdline.get('mnemonic');
 
+		let use_ledger = cmdline.keyexists('ledger');
+
 		let multisig_threshold;
 		if (cmdline.keyexists('multisig-threshold')) {
 			multisig_threshold = cmdline.get('multisig-threshold');
@@ -194,6 +203,7 @@ function parseCmdLineParams() {
 			input,
 			output,
 			mnemonic,
+			use_ledger,
 			multisig_threshold,
 			multisig_addresses,
 			remove_signature
