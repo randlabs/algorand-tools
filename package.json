@@ -1,6 +1,6 @@
 {
   "name": "algorand-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Utilities for handling Algorand transactions",
   "main": "index.js",
   "scripts": {
