@@ -1,5 +1,4 @@
 const cmdline = require('node-cmdline-parser');
-const utils = require('../lib/helpers/utils');
 const tools = require('../index');
 
 //------------------------------------------------------------------------------
@@ -29,10 +28,8 @@ async function main() {
 
 	let options = await parseCmdLineParams();
 
-	let file_list = tools.utils.getFileList(options.source.folder, options.source.filemask);
-
 	let txs = [];
-	for (let file of file_list) {
+	for (let file of options.source) {
 		let _txs = await tools.storage.loadTransactionsFromFile(file);
 
 		txs = txs.concat(_txs);
@@ -58,7 +55,7 @@ function parseCmdLineParams() {
 			return;
 		}
 		try {
-			output = utils.normalizeFilename(output);
+			output = tools.utils.normalizeFilename(output);
 		}
 		catch (err) {
 			reject(err);
@@ -79,29 +76,29 @@ function parseCmdLineParams() {
 		if (idx2 > idx) {
 			idx = idx2;
 		}
-		let source = {
+		let _source = {
 			folder: filemask.substr(0, idx + 1),
 			filemask: filemask.substr(idx + 1)
 		};
-		if (source.folder.indexOf('*') >= 0 || source.folder.indexOf('?') >= 0) {
+		if (_source.folder.indexOf('*') >= 0 || _source.folder.indexOf('?') >= 0) {
 			reject(new Error("ERROR: Wildcards are not allowed in the folder part of the '--source' parameter."));
 			return;
 		}
 		try {
-			source.folder = utils.normalizeFolder(source.folder);
+			_source.folder = tools.utils.normalizeFolder(_source.folder);
 		}
 		catch (err) {
 			reject(err);
 			return;
 		}
-		if (source.folder.length == 0) {
-			reject(new Error("ERROR: Invalid value in '--filemask' parameter."));
+		if (_source.folder.length == 0) {
+			reject(new Error("ERROR: Invalid value in '--source' parameter."));
 			return;
 		}
-		if (source.filemask.length == 0) {
-			source.filemask = '*.tx';
+		if (_source.filemask.length == 0) {
+			_source.filemask = '*.tx';
 		}
-		source.filemask = utils.globStringToRegex(source.filemask);
+		let source = tools.utils.getFileList(_source.folder, _source.filemask);
 
 		let mergesignatures = cmdline.keyexists('merge-signatures');
 

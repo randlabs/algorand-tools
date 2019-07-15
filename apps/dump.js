@@ -63,7 +63,7 @@ function parseCmdLineParams() {
 		let last = null;
 		if (first !== null) {
 			first = parseInt(first, 10);
-			if (isNaN(first) || first < 1) {
+			if (Number.isNaN(first) || first < 1) {
 				reject(new Error("ERROR: Invalid value in '--first' parameter. It must be greater or equal to 1."));
 				return;
 			}
@@ -73,7 +73,7 @@ function parseCmdLineParams() {
 			first = cmdline.get('from');
 			if (first !== null) {
 				first = parseInt(first, 10);
-				if (isNaN(first) || first < 1) {
+				if (Number.isNaN(first) || first < 1) {
 					reject(new Error("ERROR: Invalid value in '--first' parameter. It must be greater or equal to 1."));
 					return;
 				}
@@ -85,7 +85,7 @@ function parseCmdLineParams() {
 			last = cmdline.get('to');
 			if (last !== null) {
 				last = parseInt(last, 10);
-				if (isNaN(last) || last < first) {
+				if (Number.isNaN(last) || last < first) {
 					reject(new Error("ERROR: Invalid value in '--to' parameter. It must be greater or equal to 'from'."));
 					return;
 				}
@@ -139,6 +139,9 @@ function print_tx(_tx, tx_idx) {
 	}
 	if (typeof _tx.txn.gh != "undefined" && Buffer.isBuffer(_tx.txn.snd)) {
 		console.log("  Genesis hash:", _tx.txn.gh.toString('base64'));
+	}
+	if (typeof _tx.txn.close != "undefined" && Buffer.isBuffer(_tx.txn.close)) {
+		console.log("  Close address:", tools.addresses.encode(_tx.txn.close));
 	}
 
 	if (typeof _tx.sig != "undefined" && Buffer.isBuffer(_tx.sig)) {

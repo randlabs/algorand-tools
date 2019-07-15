@@ -60,11 +60,11 @@ $ node apps/sign.js parameters [options]
 ```
 
 #### Parameters:
-* `--input {FILENAME}` : File with transactions to sign.
-* `--output {FILENAME}` : Output file to create with signed transactions.
-* `--mnemonic "{MNEMONIC}"` : Signer's mnemonic. Enclose the 25-word passphrase in quotes.
+* `--input {FILENAME} or {FOLDERNAME}` : Folder and/or file with transactions to sign. Wildcards accepted on filename..
+* `--output {FILENAME}` : Output file to create with signed transactions. Can be used only if input is only one file.
 
 ##### Options:
+* `--mnemonic "{MNEMONIC}"` : Signer's mnemonic. Enclose the 25-word passphrase in quotes. If not provided, the app will ask for it.
 * `--multisig-threshold {NUMBER}` : Required signatures for a multsig account.
 * `--multisig-addresses {ADDRESS[,ADDRESS...]}` : A comma separated list of addresses that make up the multisig account. Required only for the first signature.
 * `--remove-existing` : Remove any previously existing signature from the transaction.
