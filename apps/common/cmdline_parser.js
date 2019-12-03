@@ -273,7 +273,7 @@ function getBuffer(paramName, options) {
 		value_type = 'json';
 	}
 	else {
-		if ((value.length % 2) == 0 && (/[0-9A-F]/iu).test(value)) {
+		if ((value.length % 2) == 0 && (/^[0-9A-F]$/iu).test(value)) {
 			value_type = 'hex';
 		}
 		else {
@@ -299,6 +299,16 @@ function getBuffer(paramName, options) {
 	}
 	if (value.length == 0) {
 		throw new Error('ERROR: Invalid value in \'--' + paramName + '\' parameter.');
+	}
+
+	if (options && options.requiredLength && value.length != options.requiredLength) {
+		throw new Error('ERROR: Length of \'--' + paramName + '\' parameter must be ' + options.requiredLength.toString() + 'bytes.');
+	}
+	if (options && options.mininumLength && value.length < options.mininumLength) {
+		throw new Error('ERROR: Minimum length for \'--' + paramName + '\' parameter is ' + options.mininumLength.toString() + 'bytes.');
+	}
+	if (options && options.maxinumLength && value.length > options.maxinumLength) {
+		throw new Error('ERROR: Maximum length for \'--' + paramName + '\' parameter is ' + options.maxinumLength.toString() + 'bytes.');
 	}
 
 	return value;

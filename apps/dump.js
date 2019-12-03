@@ -108,7 +108,6 @@ function print_tx(tx, tx_idx) {
 			}
 		}
 		else if (tx.txn.type == 'keyreg') {
-
 			if (typeof tx.txn.votekey != 'undefined') {
 				console.log('  Vote key:', tx.txn.votekey.toString('base64'));
 			}
@@ -129,7 +128,6 @@ function print_tx(tx, tx_idx) {
 			if (typeof tx.txn.caid != 'undefined') {
 				console.log('  Asset ID:', tx.txn.caid);
 			}
-
 			if (typeof tx.txn.apar != 'undefined') {
 				if (typeof tx.txn.apar.m != 'undefined' && Buffer.isBuffer(tx.txn.apar.m)) {
 					console.log('  Manager address:', tools.addresses.encode(tx.txn.apar.m));
@@ -146,19 +144,21 @@ function print_tx(tx, tx_idx) {
 				if (typeof tx.txn.apar.am != 'undefined' && Buffer.isBuffer(tx.txn.apar.am)) {
 					console.log('  Metahash data:', tx.txn.apar.am.toString('base64'));
 				}
-				console.log('  Total amount:', ((typeof tx.txn.apar.t != 'undefined') ? tx.txn.apar.t : 0));
-				console.log('  Name:', ((typeof tx.txn.apar.an == 'string' && tx.txn.apar.an.length > 0) ? tx.txn.apar.an : '(none)'));
-				console.log('  Unit name:', ((typeof tx.txn.apar.un == 'string' && tx.txn.apar.un.length > 0) ? tx.txn.apar.un : '(none)'));
+				if (typeof tx.txn.apar.t != 'undefined') {
+					console.log('  Total amount:', tx.txn.apar.t);
+				}
+				if (typeof tx.txn.apar.an == 'string' && tx.txn.apar.an.length > 0) {
+					console.log('  Name:', tx.txn.apar.an);
+				}
+				if (typeof tx.txn.apar.un == 'string' && tx.txn.apar.un.length > 0) {
+					console.log('  Unit name:', tx.txn.apar.un);
+				}
 				if (typeof tx.txn.apar.au == 'string' && tx.txn.apar.au.length > 0) {
 					console.log('  Url:', tx.txn.apar.au);
 				}
-				console.log('  Default frozen:', ((typeof tx.txn.apar.df != 'undefined' && Boolean(tx.txn.apar.df)) ? 'TRUE' : 'FALSE'));
-			}
-			else {
-				console.log('  Total amount: 0');
-				console.log('  Name: (none)');
-				console.log('  Unit name: (none)');
-				console.log('  Default frozen: FALSE');
+				if (typeof tx.txn.apar.df != 'undefined') {
+					console.log('  Default frozen:', tx.txn.apar.df ? 'TRUE' : 'FALSE');
+				}
 			}
 		}
 		else if (tx.txn.type == 'afrz') {
@@ -168,7 +168,9 @@ function print_tx(tx, tx_idx) {
 			if (typeof tx.txn.fadd != 'undefined' && Buffer.isBuffer(tx.txn.fadd)) {
 				console.log('  Freeze address:', tools.addresses.encode(tx.txn.fadd));
 			}
-			console.log('  Freeze state:', ((typeof tx.txn.afrz != 'undefined' && Boolean(tx.txn.afrz)) ? 'TRUE' : 'FALSE'));
+			if (typeof tx.txn.afrz != 'undefined') {
+				console.log('  Freeze state:', tx.txn.afrz ? 'TRUE' : 'FALSE');
+			}
 		}
 		else if (tx.txn.type == 'axfer') {
 			if (typeof tx.txn.xaid != 'undefined') {

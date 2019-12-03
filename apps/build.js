@@ -21,20 +21,53 @@ async function main() {
 		console.log('');
 		console.log('Where \'parameters\' are:');
 		console.log('  --output {FILENAME}       : Transaction file to create.');
+		console.log('  --type {STRING}           : Transaction type. Can be \'pay\', \'keyreg\', \'asset-config\' or \'asset-freeze\'.');
 		console.log('  --from {ADDRESS}          : Sender address.');
-		console.log('  --to {ADDRESS}            : Receiver address. Can be ommited if a close account is specified.');
-		console.log('  --amount {NUMBER}         : Amount to send in microalgos.');
+		console.log('  --asset-index {NUMBER}    : The asset ID only if the transaction involves an asset.');
 		console.log('  --fee {NUMBER}            : Fees to pay (the value is multiplied by the transaction size unless `--fixed-fee` ' +
-					'is specified).');
+					'is also specified).');
 		console.log('  --first-round [+]{NUMBER} : First round where the transaction should be sent. Use +NUMBER to calculate the ' +
 					'round based on the network\'s current round.');
 		console.log('');
+		console.log('Additional \'pay\' (payment) parameters:');
+		console.log('  --to {ADDRESS}            : Receiver address. Can be ommited if a close account is specified.');
+		console.log('  --amount {NUMBER}         : Amount of microalgos or assets to send.');
+		console.log('  --close {ADDRESS}         : Close address. Optional. The remaining account funds will be transferred to ' +
+					'this address.');
+		console.log('  --revocation {ADDRESS}    : Optional revocation address for assets transfer using the clawback.');
+		console.log('');
+		console.log('Additional \'keyreg\' (key registration) parameters:');
+		console.log('  --vote-key {BASE64-STRING|HEX-STRING}          : Optional vote key. If you omit all keys, the sender address ' +
+					'will be unregistered.');
+		console.log('  --selection-key {BASE64-STRING|HEX-STRING}     : Optional selection key.');
+		console.log('  --vote-first {NUMBER}                          : Optional first round where the vote will be valid.');
+		console.log('  --vote-last {NUMBER}                           : Optional last round where the vote will be valid.');
+		console.log('  --vote-key-dilution {BASE64-STRING|HEX-STRING} : Optional vote key dilution.');
+		console.log('');
+		console.log('Additional \'asset-config\' parameters:');
+		console.log('  --manager {ADDRESS}  : Manager address. The allowed address to change the asset configuration. Omit all ' +
+					'addresses to destroy the asset.');
+		console.log('  --reserve {ADDRESS}  : Reserve address.');
+		console.log('  --freeze {ADDRESS}   : Freeze address. Configures the address allowed to freeze and unfreeze accounts.');
+		console.log('  --clawback {ADDRESS} : Optional clawback address. Configures the address capable to execute a clawback.');
+		console.log('  --metahash-data {BASE64-STRING|HEX-STRING} : Optional metahash data. Only available when the asset is created.');
+		console.log('  --name {STRING}                            : Optional asset name. Only available when the asset is created.');
+		console.log('  --unit-name {STRING}                       : Optional asset unit name. Only available when the asset is created.');
+		console.log('  --url {STRING}                             : Optional asset URL. Only available when the asset is created.');
+		console.log('  --total {NUMBER}                           : Total amount of asset tokens to generate. Only available when the ' +
+					'asset is created.');
+		console.log('  --default-frozen {BOOLEAN}                 : If true, all accounts are initially frozen by default.. Only ' +
+					'available when the asset is created.');
+		console.log('');
+		console.log('Additional \'asset-freeze\' parameters:');
+		console.log('  --account {ADDRESS} : Account to freeze or unfreeze.');
+		console.log('  --state {BOOLEAN}   : True if the account will be frozen. False to unfreeze.');
+		console.log('');
 		console.log('And \'options\' are:');
-		console.log('  --note {BASE64-STRING}                      : Note to add.');
+		console.log('  --note {BASE64-STRING|HEX-STRING|JSON}      : Note to add.');
+		console.log('  --lease {BASE64-STRING|HEX-STRING}          : Lease field to add.');
 		console.log('  --last-round [+]{NUMBER}                    : Last round where the transaction should be sent. Defaults to ' +
 					'1000 after first round. Use +NUMBER to calculate the round based on the network\'s current round.');
-		console.log('  --close {ADDRESS}                           : Close address. Remaining account funds will be transferred to ' +
-					'this address.');
 		console.log('  --genesis-hash {BASE64-STRING}              : Network\'s genesis hash. Retrieved from network if not specified.');
 		console.log('  --genesis-id {STRING}                       : Network\'s genesis ID. Retrieved from network if not stated.');
 		console.log('  --multisig-threshold {NUMBER}               : Required signatures for a multsig account template.');
@@ -51,54 +84,51 @@ async function main() {
 
 	let options = await parseCmdLineParams();
 
-	if (options.first_round < 0 || (typeof options.last_round !== 'undefined' && options.last_round < 0)) {
-		let round = await tools.node.getLastRound();
+	if (options.first_round.isRelative || (!options.last_round) || options.last_round.isRelative < 0) {
+		const current_round = await tools.node.getLastRound();
 
-		if (options.first_round < 0) {
-			options.first_round = round + (-options.first_round);
+		if (options.first_round.isRelative) {
+			options.first_round.round += current_round;
 		}
-		if (typeof options.last_round !== 'undefined' && options.last_round < 0) {
-			options.last_round = round + (-options.last_round);
+		if (!options.last_round) {
+			options.last_round = {
+				round: options.first_round.round + 1000
+			};
+		}
+		else if (options.last_round.isRelative) {
+			options.last_round.round += current_round;
 		}
 	}
 
-	const tx_options = {
-		from: options.from_address,
-		to: options.to_address,
-		amount: options.amount,
-		fee: options.fee,
-		fixed_fee: options.fixed_fee,
-		first_round: options.first_round,
-		last_round: options.last_round,
-		close: options.close_address,
-		genesis_hash: options.genesis_hash,
-		genesis_id: options.genesis_id,
-		note: options.note
-	};
+	options.first_round = options.first_round.round;
+	options.last_round = options.last_round.round;
 
-	if (options.tx_type == 'keyreg') {
-		tx = await tools.tx.createKeyregTransaction(tx_options);
+	const tx_type = options.tx_type;
+	delete options.tx_type;
+
+	if (tx_type == 'keyreg') {
+		tx = await tools.tx.createKeyregTransaction(options);
 	}
-	else if (options.tx_type == 'asset-config') {
-		if (options.asset_id === null) {
-			tx = await tools.tx.createAssetCreationTransaction(tx_options);
+	else if (tx_type == 'asset-config') {
+		if (options.asset_index === null) {
+			tx = await tools.tx.createAssetCreationTransaction(options);
 		}
 		else if (options.asset_manager || options.asset_reserve || options.asset_freeze || options.asset_clawback) {
-			tx = await tools.tx.createAssetConfigurationTransaction(tx_options);
+			tx = await tools.tx.createAssetConfigurationTransaction(options);
 		}
 		else {
-			tx = await tools.tx.createAssetDestructionTransaction(tx_options);
+			tx = await tools.tx.createAssetDestructionTransaction(options);
 		}
 	}
-	else if (options.tx_type == 'asset-freeze') {
-		tx = await tools.tx.createAssetFreezeTransaction(tx_options);
+	else if (tx_type == 'asset-freeze') {
+		tx = await tools.tx.createAssetFreezeTransaction(options);
 	}
 	else {
-		if (options.asset_id === null) {
-			tx = await tools.tx.createPaymentTransaction(tx_options);
+		if (options.asset_index === null) {
+			tx = await tools.tx.createPaymentTransaction(options);
 		}
 		else {
-			tx = await tools.tx.createAssetTransferTransaction(tx_options);
+			tx = await tools.tx.createAssetTransferTransaction(options);
 		}
 	}
 
@@ -115,7 +145,7 @@ function parseCmdLineParams() {
 		let options = {};
 
 		try {
-			options.output = cmdlineParser.getFilesByFilemask('output');
+			options.output = cmdlineParser.getFilename('output');
 
 			options.tx_type = cmdlineParser.getString('type', { optional: true });
 			if (options.tx_type !== null) {
@@ -146,7 +176,7 @@ function parseCmdLineParams() {
 			options.from = cmdlineParser.getAddress('from', { optional: cmdlineParser.paramIsPresent('multisig-addresses') });
 
 			if (options.tx_type == 'pay' || options.tx_type == 'asset-config' || options.tx_type == 'asset-freeze') {
-				options.asset_id = cmdlineParser.getUint('asset-id', { optional: true, min: 1 });
+				options.asset_index = cmdlineParser.getUint('asset-index', { optional: true, min: 1 });
 			}
 
 			if (options.tx_type == 'pay') {
@@ -156,21 +186,21 @@ function parseCmdLineParams() {
 
 				options.amount = cmdlineParser.getUint('amount');
 
-				if (options.asset_id !== null) {
+				if (options.asset_index !== null) {
 					options.revocation_address = cmdlineParser.getAddress('revocation', { optional: true });
 				}
 			}
 
 			if (options.tx_type == 'keyreg') {
-				options.vote_key = cmdlineParser.getString('vote-key', { optional: true });
+				options.vote_key = cmdlineParser.getBuffer('vote-key', { optional: true });
 
-				options.selection_key = cmdlineParser.getString('sel-key', { optional: true });
+				options.selection_key = cmdlineParser.getBuffer('sel-key', { optional: true });
 
 				options.vote_first = cmdlineParser.getRound('vote-first-round', { optional: true });
 
 				options.vote_last = cmdlineParser.getRound('vote-last-round', { optional: true });
 
-				options.vote_key_dilution = cmdlineParser.getString('vote-key-dilution', { optional: true });
+				options.vote_key_dilution = cmdlineParser.getBuffer('vote-key-dilution', { optional: true });
 			}
 
 			if (options.tx_type == 'asset-config') {
@@ -182,12 +212,12 @@ function parseCmdLineParams() {
 
 				options.asset_clawback = cmdlineParser.getAddress('clawback', { optional: true });
 
-				if (options.asset_id === null) {
-					options.asset_metahash_data = cmdlineParser.getString('metahash-data', { optional: true });
+				if (options.asset_index === null) {
+					options.asset_metahash_data = cmdlineParser.getBuffer('metahash-data', { optional: true });
 
 					options.asset_name = cmdlineParser.getString('name', { optional: true });
 
-					options.asset_unit_name = cmdlineParser.getString('units-name', { optional: true });
+					options.asset_unit_name = cmdlineParser.getString('unit-name', { optional: true });
 
 					options.asset_url = cmdlineParser.getString('url', { optional: true });
 
@@ -201,8 +231,8 @@ function parseCmdLineParams() {
 			}
 
 			if (options.tx_type == 'asset-freeze') {
-				if (options.asset_id === null) {
-					throw new Error('ERROR: Missing  \'--asset-id\' parameter.');
+				if (options.asset_index === null) {
+					throw new Error('ERROR: Missing  \'--asset-index\' parameter.');
 				}
 
 				options.freeze_account = cmdlineParser.getAddress('account');
