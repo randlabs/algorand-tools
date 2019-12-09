@@ -1,5 +1,5 @@
+const cmdlineParser = require('./common/cmdline_parser');
 const fs = require('fs');
-const cmdline = require('node-cmdline-parser');
 const sha512 = require('js-sha512').sha512;
 const tools = require('../index');
 const readlineSync = require('readline-sync');
@@ -19,21 +19,21 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
-	if (cmdline.keyexists("help")) {
-		console.log("Use: raw_signer.js sign-parameters");
-		console.log(" Or: raw_signer.js --verify verify-parameters");
-		console.log("");
-		console.log("Where 'sign-parameters' are:");
-		console.log("  --data {TEXT}           : Sign the passed data. Cannot be used with '--filename'.");
-		console.log("  --filename {FILENAME}   : File to sign. Cannot be used with '--data'.");
-		console.log("  --output {FILENAME}     : Signature file to generate.");
-		console.log("  --mnemonic \"{MNEMONIC}\" : Signer's mnemonic. Enclose the 25-word passphrase in quotes.");
-		console.log("");
-		console.log("And 'verify-parameters' are:");
-		console.log("  --data {TEXT}          : Verify the passed data. Cannot be used with '--filename'.");
-		console.log("  --filename {FILENAME}  : File to verify. Cannot be used with '--data'.");
-		console.log("  --signature {FILENAME} : Signature file to validate.");
-		console.log("  --address {ADDRESS}    : Address of signer.");
+	if (cmdlineParser.askingHelp()) {
+		console.log('Use: raw_signer.js sign-parameters');
+		console.log(' Or: raw_signer.js --verify verify-parameters');
+		console.log('');
+		console.log('Where \'sign-parameters\' are:');
+		console.log('  --data {TEXT}           : Sign the passed data. Cannot be used with \'--filename\'.');
+		console.log('  --filename {FILENAME}   : File to sign. Cannot be used with \'--data\'.');
+		console.log('  --output {FILENAME}     : Signature file to generate.');
+		console.log('  --mnemonic \'{MNEMONIC}\' : Signer\'s mnemonic. Enclose the 25-word passphrase in quotes.');
+		console.log('');
+		console.log('And \'verify-parameters\' are:');
+		console.log('  --data {TEXT}          : Verify the passed data. Cannot be used with \'--filename\'.');
+		console.log('  --filename {FILENAME}  : File to verify. Cannot be used with \'--data\'.');
+		console.log('  --signature {FILENAME} : Signature file to validate.');
+		console.log('  --address {ADDRESS}    : Address of signer.');
 		return;
 	}
 
@@ -56,18 +56,22 @@ async function main() {
 
 		if (!options.mnemonic) {
 			options.mnemonic = readlineSync.question('Enter your mnemonic pass phrase: ');
+
+			if (!tools.mnemonics.isValid(options.mnemonic)) {
+				throw new Error("ERROR: Invalid mnemonic value entered.");
+			}
 		}
 
 		let signature = tools.sign.rawSign(hash, options.mnemonic);
 		if (!signature) {
-			throw new Error("Invalid mnemonic.");
+			throw new Error("ERROR: Invalid mnemonic value entered.");
 		}
 
 		address = tools.mnemonics.decode(options.mnemonic).address;
 
 		fs.writeFileSync(options.output, signature);
 
-		console.log("Data signed with key of " + address);
+		console.log('Data signed with key of ' + address);
 	}
 	else {
 		let signature = fs.readFileSync(options.signature);
@@ -77,115 +81,52 @@ async function main() {
 		}
 
 		if (tools.sign.rawVerify(hash, new Uint8Array(signature), options.address)) {
-			console.log("Validation SUCCEEDED!!!");
+			console.log('Validation SUCCEEDED!!!');
 		}
 		else {
-			console.log("Validation FAILED!!!");
+			console.log('Validation FAILED!!!');
 		}
 	}
 }
 
 function parseCmdLineParams() {
 	return new Promise((resolve, reject) => {
-		let verify = cmdline.keyexists('verify');
-		let data;
-		let filename;
-		let output;
-		let mnemonic;
-		let signature;
-		let address;
+		let options = {};
 
-		if (cmdline.keyexists('data')) {
-			data = cmdline.get('data');
-			if (data === null) {
-				reject(new Error("ERROR: Missing value in '--data' parameter."));
-				return;
-			}
-		}
-		if (cmdline.keyexists('filename')) {
-			if (data) {
-				reject(new Error("ERROR: Cannot use '--filename' parameter when '--data' is present."));
-				return;
-			}
-			filename = cmdline.get('filename');
-			if (filename === null) {
-				reject(new Error("ERROR: Missing value in '--filename' parameter."));
-				return;
-			}
-			try {
-				filename = tools.utils.normalizeFilename(filename);
-			}
-			catch (err) {
-				reject(err);
-				return;
-			}
-			if (filename.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--filename' parameter."));
-				return;
-			}
-		}
+		try {
+			options.verify = cmdlineParser.paramIsPresent('verify');
 
-		if (!verify) {
-			output = cmdline.get('output');
-			if (output === null) {
-				reject(new Error("ERROR: Missing value in '--output' parameter."));
-				return;
-			}
-			try {
-				output = tools.utils.normalizeFilename(output);
-			}
-			catch (err) {
-				reject(err);
-				return;
-			}
-			if (output.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--output' parameter."));
-				return;
-			}
-
-			if (cmdline.keyexists('mnemonic')) {
-				mnemonic = cmdline.get('mnemonic');
-				if (mnemonic !== null) {
-					reject(new Error("ERROR: Missing value in '--mnemonic' parameter."));
-					return;
+			if (cmdlineParser.paramIsPresent('data')) {
+				if (cmdlineParser.paramIsPresent('filename')) {
+					throw new Error('ERROR: Cannot use \'--filename\' parameter when \'--data\' is present.');
 				}
+
+				options.data = cmdlineParser.getString('data');
 			}
-		}
-		else {
-			signature = cmdline.get('signature');
-			if (signature === null) {
-				reject(new Error("ERROR: Missing value in '--signature' parameter."));
-				return;
+			else if (cmdlineParser.paramIsPresent('filename')) {
+				options.filename = cmdlineParser.getFilename('filename');
 			}
-			try {
-				signature = tools.utils.normalizeFilename(signature);
-			}
-			catch (err) {
-				reject(err);
-				return;
-			}
-			if (signature.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--signature' parameter."));
-				return;
+			else {
+				throw new Error('ERROR: Missing \'--data\' and \'--filename\' parameter.');
 			}
 
-			if (cmdline.keyexists('address')) {
-				address = cmdline.get('address');
-				if (address === null) {
-					reject(new Error("ERROR: Missing value in '--address' parameter."));
-					return;
-				}
+			if (!options.verify) {
+				options.output = cmdlineParser.getFilename('output');
+
+				options.mnemonic = cmdlineParser.getMnemonic('mnemonic', { optional: true, dontDecode: true });
+			}
+			else {
+				options.signature = cmdlineParser.getFilename('signature');
+
+				options.address = cmdlineParser.getAddress('address', { optional: true });
 			}
 		}
-		resolve({
-			verify,
-			data,
-			filename,
-			output,
-			mnemonic,
-			signature,
-			address
-		});
+		catch (err) {
+			reject(err);
+			return;
+		}
+
+		resolve(options);
 	});
 }
 

@@ -6,7 +6,7 @@ A set of useful apps and snippets to handle Algorand transactions. The package c
 
 To install the library, use the following command:
 ```sh
-$ npm install algorand-tools
+$ npm install @randlabs/algorand-tools
 ```
 
 # Usage

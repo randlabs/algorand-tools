@@ -1,4 +1,4 @@
-const algosdk = require('algosdk');
+const cmdlineParser = require('./common/cmdline_parser');
 const tools = require('../index');
 const cmdline = require('node-cmdline-parser');
 
@@ -17,16 +17,16 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
-	if (cmdline.keyexists("help")) {
-		console.log("Use: generate_address.js single-account-parameters");
-		console.log(" Or: generate_address.js  --multisig multisig-account-parameters");
-		console.log("");
-		console.log("Where 'single-account-parameters' is:");
-		console.log("  --count {NUMBER} : Number of addresses to generate.");
-		console.log("");
-		console.log("And 'multisig-account-parameters' are:");
-		console.log("  --size {NUMBER} : Amount of addresses envolved in the multisig account.");
-		console.log("  --req {NUMBER}  : Required amount signatures to validate a multisig transaction.");
+	if (cmdlineParser.askingHelp()) {
+		console.log('Use: generate_address.js single-account-parameters');
+		console.log(' Or: generate_address.js  --multisig multisig-account-parameters');
+		console.log('');
+		console.log('Where \'single-account-parameters\' is:');
+		console.log('  --count {NUMBER} : Number of addresses to generate.');
+		console.log('');
+		console.log('And \'multisig-account-parameters\' are:');
+		console.log('  --size {NUMBER} : Amount of addresses envolved in the multisig account.');
+		console.log('  --req {NUMBER}  : Required amount signatures to validate a multisig transaction.');
 		return;
 	}
 
@@ -36,79 +36,55 @@ async function main() {
 		let addresses = [];
 
 		for (let idx = 1; idx <= options.size; idx++) {
-			let addr = algosdk.generateAccount();
+			let account = tools.addresses.generate();
 
-			addresses.push(addr.addr);
+			addresses.push(account.address);
 
-			console.log("Account #" + idx.toString() + ": " + addr.addr);
-			console.log("Mnemonic:", algosdk.secretKeyToMnemonic(addr.sk));
-			console.log("-----------------------------------------");
+			console.log('Account #' + idx.toString() + ': ' + account.address);
+			console.log('Mnemonic:', account.mnemonic);
+			console.log('-----------------------------------------');
 		}
 
 		let multiSigAddr = tools.addresses.generateMultisig(addresses, options.required);
-		console.log("Multi-sig Account: " + multiSigAddr);
+		console.log('Multi-sig Account: ' + multiSigAddr);
 	}
 	else {
 		for (let idx = 1; idx <= options.count; idx++) {
-			let addr = algosdk.generateAccount();
+			let account = tools.addresses.generate();
 
 			if (idx > 1) {
-				console.log("-----------------------------------------");
+				console.log('-----------------------------------------');
 			}
 
-			console.log("Account #" + idx.toString() + ": " + addr.addr);
-			console.log("Mnemonic:", algosdk.secretKeyToMnemonic(addr.sk));
+			console.log('Account #' + idx.toString() + ': ' + account.address);
+			console.log('Mnemonic:', account.mnemonic);
 		}
 	}
 }
 
 function parseCmdLineParams() {
 	return new Promise((resolve, reject) => {
-		if (cmdline.keyexists('multisig')) {
-			let size = cmdline.get('size');
-			if (size === null) {
-				reject(new Error("ERROR: Missing value in '--size' parameter."));
-				return;
-			}
-			size = parseInt(size, 10);
-			if (Number.isNaN(size) || size < 1 || size > 1000) {
-				reject(new Error("ERROR: Invalid value in '--size' parameter. It must be between 2 and 100."));
-				return;
-			}
+		let options = {};
 
-			let required = cmdline.get('req');
-			if (required === null) {
-				reject(new Error("ERROR: Missing value in '--req' parameter."));
-				return;
-			}
-			required = parseInt(required, 10);
-			if (Number.isNaN(required) || required < 1 || required > size) {
-				reject(new Error("ERROR: Invalid value in '--req' parameter. It must be between 1 and 'size'."));
-				return;
-			}
+		try {
+			if (cmdlineParser.paramIsPresent('multisig')) {
+				options.multisig = true;
 
-			resolve({
-				multisig: true,
-				size,
-				required
-			});
+				options.size = cmdlineParser.getUint('size', { min: 2, max: 100 });
+
+				options.required = cmdlineParser.getUint('req', { min: 1, max: options.size });
+			}
+			else {
+				options.multisig = false;
+
+				options.count = cmdlineParser.getUint('count', { min: 1, max: 1000 });
+			}
 		}
-		else {
-			let count = cmdline.get('count');
-			if (count === null) {
-				reject(new Error("ERROR: Missing value in '--count' parameter."));
-				return;
-			}
-			count = parseInt(count, 10);
-			if (Number.isNaN(count) || count < 1 || count > 1000) {
-				reject(new Error("ERROR: Invalid value in '--count' parameter. It must be between 1 and 100"));
-				return;
-			}
-
-			resolve({
-				multisig: false,
-				count
-			});
+		catch (err) {
+			reject(err);
+			return;
 		}
+
+		resolve(options);
 	});
 }

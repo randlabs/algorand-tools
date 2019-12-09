@@ -1,4 +1,4 @@
-const cmdline = require('node-cmdline-parser');
+const cmdlineParser = require('./common/cmdline_parser');
 const tools = require('../index');
 
 //------------------------------------------------------------------------------
@@ -16,27 +16,32 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
-	if (cmdline.keyexists("help")) {
-		console.log("Use: filter.js parameters filters");
-		console.log("");
-		console.log("Where 'parameters' are:");
-		console.log("  --input {FILENAME}  : File with transactions to filter.");
-		console.log("  --output {FILENAME} : File with filtered transactions.");
-		console.log("");
-		console.log("And 'filters' are:");
-		console.log("  --genesis-id {STRING}               : Include transactions with the specified genesis id. Wildcards accepted.");
-		console.log("  --not-genesis-id {STRING}           : Include transactions with genesis id different than the specified. Wildcards accepted.");
-		console.log("  --from {ADDRESS}                    : Include transactions coming from the specified address.");
-		console.log("  --not-from {ADDRESS}                : Include transactions coming from an address different than the specified.");
-		console.log("  --to {ADDRESS}                      : Include transactions sent to the specified address.");
-		console.log("  --not-to {ADDRESS}                  : Include transactions sent to a different address from the specified.");
-		console.log("  --#COMPARATOR#-amount {NUMBER}      : Include transactions where transaction's amount fullfills the specified comparator condition.");
-		console.log("  --#COMPARATOR#-fee {NUMBER}         : Include transactions where transaction's fees fullfills the specified comparator condition.");
-		console.log("  --#COMPARATOR#-first-round {NUMBER} : Include transactions where transaction's first round fullfills the specified comparator condition.");
-		console.log("  --#COMPARATOR#-last-round {NUMBER}  : Include transactions where transaction's last round  fullfills the specified comparator condition.");
-		console.log("");
-		console.log("And 'COMPARATOR' can be: less, less-equal, equal, not-equal, greater, greater-equal");
-		console.log("  I.e.: ---less-equal-amount 2000 includes all txs where the amount is less or equal to 2000 microalgos.");
+	if (cmdlineParser.askingHelp()) {
+		console.log('Use: filter.js parameters filters');
+		console.log('');
+		console.log('Where \'parameters\' are:');
+		console.log('  --input {FILENAME}  : File with transactions to filter.');
+		console.log('  --output {FILENAME} : File with filtered transactions.');
+		console.log('');
+		console.log('And \'filters\' are:');
+		console.log('  --genesis-id {STRING}               : Include transactions with the specified genesis id. Wildcards accepted.');
+		console.log('  --not-genesis-id {STRING}           : Include transactions with genesis id different than the specified. ' +
+					'Wildcards accepted.');
+		console.log('  --from {ADDRESS}                    : Include transactions coming from the specified address.');
+		console.log('  --not-from {ADDRESS}                : Include transactions coming from an address different than the specified.');
+		console.log('  --to {ADDRESS}                      : Include transactions sent to the specified address.');
+		console.log('  --not-to {ADDRESS}                  : Include transactions sent to a different address from the specified.');
+		console.log('  --#COMPARATOR#-amount {NUMBER}      : Include transactions where transaction\'s amount fullfills the specified ' +
+					'comparator condition.');
+		console.log('  --#COMPARATOR#-fee {NUMBER}         : Include transactions where transaction\'s fees fullfills the specified ' +
+					'comparator condition.');
+		console.log('  --#COMPARATOR#-first-round {NUMBER} : Include transactions where transaction\'s first round fullfills the ' +
+					'specified comparator condition.');
+		console.log('  --#COMPARATOR#-last-round {NUMBER}  : Include transactions where transaction\'s last round  fullfills the ' +
+					'specified comparator condition.');
+		console.log('');
+		console.log('And \'COMPARATOR\' can be: less, less-equal, equal, not-equal, greater, greater-equal');
+		console.log('  I.e.: ---less-equal-amount 2000 includes all txs where the amount is less or equal to 2000 microalgos.');
 		return;
 	}
 
@@ -46,7 +51,7 @@ async function main() {
 
 	let filters = setupFilters(options);
 	if (filters.length == 0) {
-		throw new Error("ERROR: No filters were specified.");
+		throw new Error('ERROR: No filters were specified.');
 	}
 
 	let indexes = [];
@@ -75,159 +80,54 @@ async function main() {
 
 function parseCmdLineParams() {
 	return new Promise((resolve, reject) => {
-		const comparators = [ "less", "less-equal", "equal", "not-equal", "greater", "greater-equal" ];
+		const comparators = [ 'less', 'less-equal', 'equal', 'not-equal', 'greater', 'greater-equal' ];
+		let options = {};
 
-		let input = cmdline.get('input');
-		if (input === null) {
-			reject(new Error("ERROR: Missing value in '--input' parameter."));
-			return;
-		}
 		try {
-			input = tools.utils.normalizeFilename(input);
+			options.input = cmdlineParser.getFilename('input');
+
+			options.output = cmdlineParser.getFilename('output');
+
+			options.filter_genesis_id = cmdlineParser.getString('genesis-id', { optional: true });
+			if (options.filter_genesis_id !== null) {
+				options.filter_genesis_id = tools.utils.globStringToRegex(options.filter_genesis_id);
+			}
+
+			options.filter_not_genesis_id = cmdlineParser.getString('not-genesis-id', { optional: true });
+			if (options.filter_not_genesis_id !== null) {
+				options.filter_not_genesis_id = tools.utils.globStringToRegex(options.filter_not_genesis_id);
+			}
+
+			options.filter_from = cmdlineParser.getAddress('from', { optional: true });
+
+			options.filter_not_from = cmdlineParser.getAddress('not-from', { optional: true });
+
+			options.filter_to = cmdlineParser.getAddress('to', { optional: true });
+
+			options.filter_not_to = cmdlineParser.getAddress('not-to', { optional: true });
+
+			for (let comparator of comparators) {
+				let filter_name;
+
+				filter_name = 'filter_' + comparator.replace('-', '_') + '_amount';
+				options[filter_name] = cmdlineParser.getUint(comparator + '-amount', { optional: true });
+
+				filter_name = 'filter_' + comparator.replace('-', '_') + '_fee';
+				options[filter_name] = cmdlineParser.getUint(comparator + '-fee', { optional: true, min: 1 });
+
+				filter_name = 'filter_' + comparator.replace('-', '_') + '_first_round';
+				options[filter_name] = cmdlineParser.getUint(comparator + '-first-round', { optional: true, min: 1 });
+
+				filter_name = 'filter_' + comparator.replace('-', '_') + '_last_round';
+				options[filter_name] = cmdlineParser.getUint(comparator + '-last-round', { optional: true, min: 1 });
+			}
 		}
 		catch (err) {
 			reject(err);
 			return;
 		}
-		if (input.length == 0) {
-			reject(new Error("ERROR: Invalid value in '--input' parameter."));
-			return;
-		}
 
-		let output = cmdline.get('output');
-		if (output === null) {
-			reject(new Error("ERROR: Missing value in '--output' parameter."));
-			return;
-		}
-		try {
-			output = tools.utils.normalizeFilename(output);
-		}
-		catch (err) {
-			reject(err);
-			return;
-		}
-		if (output.length == 0) {
-			reject(new Error("ERROR: Invalid value in '--output' parameter."));
-			return;
-		}
-
-		let filter_genesis_id = cmdline.get('genesis-id');
-		if (filter_genesis_id !== null) {
-			if (filter_genesis_id.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--genesis-id' parameter."));
-				return;
-			}
-
-			filter_genesis_id = tools.utils.globStringToRegex(filter_genesis_id);
-		}
-
-		let filter_not_genesis_id = cmdline.get('not-genesis-id');
-		if (filter_not_genesis_id !== null) {
-			if (filter_not_genesis_id.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--not-genesis-id' parameter."));
-				return;
-			}
-
-			filter_not_genesis_id = tools.utils.globStringToRegex(filter_not_genesis_id);
-		}
-
-		let filter_from = cmdline.get('from');
-		if (filter_from !== null) {
-			if (filter_from.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--from' parameter."));
-				return;
-			}
-			filter_from = filter_from.toUpperCase();
-		}
-
-		let filter_not_from = cmdline.get('not-from');
-		if (filter_not_from !== null) {
-			if (filter_not_from.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--not-from' parameter."));
-				return;
-			}
-			filter_not_from = filter_not_from.toUpperCase();
-		}
-
-		let filter_to = cmdline.get('to');
-		if (filter_to !== null) {
-			if (filter_to.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--to' parameter."));
-				return;
-			}
-			filter_to = filter_to.toUpperCase();
-		}
-
-		let filter_not_to = cmdline.get('not-to');
-		if (filter_not_to !== null) {
-			if (filter_not_to.length == 0) {
-				reject(new Error("ERROR: Invalid value in '--not-to' parameter."));
-				return;
-			}
-			filter_not_to = filter_not_to.toUpperCase();
-		}
-
-
-		let filter_comparators = {};
-		for (let comparator of comparators) {
-			let filter_name;
-
-			filter_name = 'filter_' + comparator.replace('-', '_') + '_amount';
-			filter_comparators[filter_name] = cmdline.get(comparator + '-amount');
-			if (filter_comparators[filter_name] !== null) {
-				filter_comparators[filter_name] = parseInt(filter_comparators[filter_name], 10);
-
-				if (Number.isNaN(filter_comparators[filter_name]) || filter_comparators[filter_name] < 0) {
-					reject(new Error("ERROR: Invalid value in '" + comparator + "-amount' parameter. It must be greater than 0."));
-					return;
-				}
-			}
-
-			filter_name = 'filter_' + comparator.replace('-', '_') + '_fee';
-			filter_comparators[filter_name] = cmdline.get(comparator + '-fee');
-			if (filter_comparators[filter_name] !== null) {
-				filter_comparators[filter_name] = parseInt(filter_comparators[filter_name], 10);
-
-				if (Number.isNaN(filter_comparators[filter_name]) || filter_comparators[filter_name] < 1) {
-					reject(new Error("ERROR: Invalid value in '" + comparator + "-fee' parameter. It must be greater than or equal to 1."));
-					return;
-				}
-			}
-
-			filter_name = 'filter_' + comparator.replace('-', '_') + '_first_round';
-			filter_comparators[filter_name] = cmdline.get(comparator + '-first-round');
-			if (filter_comparators[filter_name] !== null) {
-				filter_comparators[filter_name] = parseInt(filter_comparators[filter_name], 10);
-
-				if (Number.isNaN(filter_comparators[filter_name]) || filter_comparators[filter_name] < 1) {
-					reject(new Error("ERROR: Invalid value in '" + comparator + "-first-round' parameter. It must be greater than or equal to 1."));
-					return;
-				}
-			}
-
-			filter_name = 'filter_' + comparator.replace('-', '_') + '_last_round';
-			filter_comparators[filter_name] = cmdline.get(comparator + '-last-round');
-			if (filter_comparators[filter_name] !== null) {
-				filter_comparators[filter_name] = parseInt(filter_comparators[filter_name], 10);
-
-				if (Number.isNaN(filter_comparators[filter_name]) || filter_comparators[filter_name] < 1) {
-					reject(new Error("ERROR: Invalid value in '" + comparator + "-last-round' parameter. It must be greater than or equal to 1."));
-					return;
-				}
-			}
-		}
-
-		resolve({
-			input,
-			output,
-			filter_genesis_id,
-			filter_not_genesis_id,
-			filter_from,
-			filter_not_from,
-			filter_to,
-			filter_not_to,
-			...filter_comparators
-		});
+		resolve(options);
 	});
 }
 

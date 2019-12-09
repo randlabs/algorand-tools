@@ -92,7 +92,14 @@ module.exports = {
         "id-length": "off",
         "id-match": "error",
         "implicit-arrow-linebreak": "error",
-        "indent": [ "error", "tab" ],
+        "indent": [
+            "error",
+            "tab",
+            {
+                "MemberExpression": 1,
+                "SwitchCase": 1
+            }
+        ], 
         "indent-legacy": "off",
         "init-declarations": "off",
         "jsx-quotes": "error",
@@ -255,7 +262,7 @@ module.exports = {
         "prefer-numeric-literals": "error",
         "prefer-object-spread": "error",
         "prefer-promise-reject-errors": "error",
-        "prefer-reflect": "error",
+        "prefer-reflect": "off",
         "prefer-rest-params": "error",
         "prefer-spread": "error",
         "prefer-template": "off",

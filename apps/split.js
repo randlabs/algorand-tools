@@ -1,4 +1,4 @@
-const cmdline = require('node-cmdline-parser');
+const cmdlineParser = require('./common/cmdline_parser');
 const path = require('path');
 const tools = require('../index');
 
@@ -17,15 +17,15 @@ main().then(() => {
 //------------------------------------------------------------------------------
 
 async function main() {
-	if (cmdline.keyexists("help")) {
-		console.log("Use: split.js parameters");
-		console.log("");
-		console.log("Where 'parameters' are:");
-		console.log("  --input {FILENAME}     : File with transactions to split.");
-		console.log("  --by-count {NUMBER}    : Splits in files of 'count' transactions each.");
-		console.log("  --by-quantity {NUMBER} : Splits all transactions in the specified 'quantity' of files.");
-		console.log("  --by-sender            : Splits all transactions by sender address.");
-		console.log("  --by-receiver          : Splits all transactions by receiver address.");
+	if (cmdlineParser.askingHelp()) {
+		console.log('Use: split.js parameters');
+		console.log('');
+		console.log('Where \'parameters\' are:');
+		console.log('  --input {FILENAME}     : File with transactions to split.');
+		console.log('  --by-count {NUMBER}    : Splits in files of \'count\' transactions each.');
+		console.log('  --by-quantity {NUMBER} : Splits all transactions in the specified \'quantity\' of files.');
+		console.log('  --by-sender            : Splits all transactions by sender address.');
+		console.log('  --by-receiver          : Splits all transactions by receiver address.');
 		return;
 	}
 
@@ -122,86 +122,41 @@ async function main() {
 
 function parseCmdLineParams() {
 	return new Promise((resolve, reject) => {
-		let input = cmdline.get('input');
-		if (input === null) {
-			reject(new Error("ERROR: Missing value in '--input' parameter."));
-			return;
-		}
+		let options = {};
+
 		try {
-			input = tools.utils.normalizeFilename(input);
+			let methods_count = 0;
+
+			options.input = cmdlineParser.getFilesByFilemask('input');
+
+			options.by_count = cmdlineParser.getUint('by-count', { optional: true, min: 1 });
+			if (options.by_count !== null) {
+				methods_count += 1;
+			}
+			options.by_quantity = cmdlineParser.getUint('by-count', { optional: true, min: 2 });
+			if (options.by_quantity !== null) {
+				methods_count += 1;
+			}
+			options.by_sender = cmdlineParser.paramIsPresent('by-sender');
+			if (options.by_sender !== false) {
+				methods_count += 1;
+			}
+			options.by_receiver = cmdlineParser.paramIsPresent('by-receiver');
+			if (options.by_receiver !== false) {
+				methods_count += 1;
+			}
+			if (methods_count == 0) {
+				throw new Error('ERROR: No split method specified.');
+			}
+			if (methods_count != 1) {
+				throw new Error('ERROR: More than one split method has been specified.');
+			}
 		}
 		catch (err) {
 			reject(err);
 			return;
 		}
-		if (input.length == 0) {
-			reject(new Error("ERROR: Invalid value in '--input' parameter."));
-			return;
-		}
 
-		let methods_count = 0;
-		if (cmdline.keyexists('by-count')) {
-			methods_count += 1;
-		}
-		if (cmdline.keyexists('by-quantity')) {
-			methods_count += 1;
-		}
-		if (cmdline.keyexists('by-sender')) {
-			methods_count += 1;
-		}
-		if (cmdline.keyexists('by-receiver')) {
-			methods_count += 1;
-		}
-		if (methods_count == 0) {
-			reject(new Error("ERROR: No split method specified."));
-			return;
-		}
-		if (methods_count != 1) {
-			reject(new Error("ERROR: More than one split method has been specified."));
-			return;
-		}
-
-		let by_count = null;
-		let by_quantity = null;
-		let by_sender = null;
-		let by_receiver = null;
-		if (cmdline.keyexists('by-count')) {
-			by_count = cmdline.get('by-count');
-			if (by_count === null) {
-				reject(new Error("ERROR: Missing value in '--by-count' parameter."));
-				return;
-			}
-			by_count = parseInt(by_count, 10);
-			if (Number.isNaN(by_count) || by_count < 1) {
-				reject(new Error("ERROR: Invalid value in '--by-count' parameter. It must be greater or equal to 1."));
-				return;
-			}
-		}
-		else if (cmdline.keyexists('by-quantity')) {
-			by_quantity = cmdline.get('by-quantity');
-			if (by_quantity === null) {
-				reject(new Error("ERROR: Missing value in '--by-quantity' parameter."));
-				return;
-			}
-			by_quantity = parseInt(by_quantity, 10);
-			if (Number.isNaN(by_quantity) || by_quantity < 2) {
-				reject(new Error("ERROR: Invalid value in '--by-quantity' parameter. It must be greater or equal to 2."));
-				return;
-			}
-		}
-		else if (cmdline.keyexists('by-sender')) {
-			by_sender = true;
-		}
-		else if (cmdline.keyexists('by-receiver')) {
-			by_receiver = true;
-		}
-
-		resolve({
-			input,
-			by_count,
-			by_quantity,
-			by_sender,
-			by_receiver
-		});
+		resolve(options);
 	});
 }

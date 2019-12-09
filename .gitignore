@@ -1,4 +1,5 @@
 *.~*
+README.~md
 .vscode/launch.json
 package-lock.json
 bin/*

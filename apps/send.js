@@ -1,4 +1,4 @@
-const cmdline = require('node-cmdline-parser');
+const cmdlineParser = require('./common/cmdline_parser');
 const tools = require('../index');
 
 //------------------------------------------------------------------------------
@@ -14,12 +14,12 @@ main().then(() => {
 });
 
 async function main() {
-	if (cmdline.keyexists("help")) {
-		console.log("Use: send.js parameters");
-		console.log("");
-		console.log("Where 'parameters' are:");
-		console.log("  --input {FILENAME} : File with transactions to send.");
-		console.log("  --wait             : Wait for the network's current round to match transactions' first round if required.");
+	if (cmdlineParser.askingHelp()) {
+		console.log('Use: send.js parameters');
+		console.log('');
+		console.log('Where \'parameters\' are:');
+		console.log('  --input {FILENAME} : File with transactions to send.');
+		console.log('  --wait             : Wait for the network\'s current round to match transactions\' first round if required.');
 		return;
 	}
 
@@ -54,8 +54,8 @@ async function main() {
 			}
 		}
 		if (rounds_to_wait !== null) {
-			let msg = "Next in " + rounds_to_wait.toString() + " round" + ((rounds_to_wait != 1) ? "s" : "") + "   ";
-			process.stdout.write(msg + "\b".repeat(msg.length));
+			let msg = 'Next in ' + rounds_to_wait.toString() + ' round' + ((rounds_to_wait != 1) ? 's' : '') + '   ';
+			process.stdout.write(msg + '\b'.repeat(msg.length));
 		}
 
 		loop = false;
@@ -73,7 +73,7 @@ async function main() {
 				else {
 					//can send now
 					txs_status[idx].processed = true;
-					console.log("Sending transaction " + txs_status[idx].tx_id);
+					console.log('Sending transaction ' + txs_status[idx].tx_id);
 					try {
 						await tools.node.sendTransaction(txs[idx]);
 						printStatus(txs_status[idx].tx_id, txs_status[idx].tx_info, 'Successfully sent');
@@ -107,29 +107,19 @@ function printStatus(tx_id, tx_info, status) {
 
 function parseCmdLineParams() {
 	return new Promise((resolve, reject) => {
-		let input = cmdline.get('input');
-		if (input === null) {
-			reject(new Error("ERROR: Missing value in '--input' parameter."));
-			return;
-		}
+		let options = {};
+
 		try {
-			input = tools.utils.normalizeFilename(input);
+			options.input = cmdlineParser.getFilename('input');
+
+			options.wait = cmdlineParser.paramIsPresent('wait');
 		}
 		catch (err) {
 			reject(err);
 			return;
 		}
-		if (input.length == 0) {
-			reject(new Error("ERROR: Invalid value in '--input' parameter."));
-			return;
-		}
 
-		let wait = cmdline.keyexists('wait');
-
-		resolve({
-			input,
-			wait
-		});
+		resolve(options);
 	});
 }
 
