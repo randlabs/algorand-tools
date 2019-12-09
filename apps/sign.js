@@ -79,7 +79,7 @@ async function main() {
 
 		let output_filename;
 		if (options.output !== null) {
-			output_filename = options.output[idx];
+			output_filename = options.output;
 		}
 		else {
 			let path_comps = path.parse(options.input[idx]);
@@ -112,9 +112,10 @@ function parseCmdLineParams() {
 				}
 			}
 
-			options.mnemonic = cmdlineParser.getMnemonic('mnemonic', { dontDecode: true });
-
 			options.use_ledger = cmdlineParser.paramIsPresent('ledger');
+			if (!options.use_ledger) {
+				options.mnemonic = cmdlineParser.getMnemonic('mnemonic', { dontDecode: true });
+			}
 
 			options.multisig_threshold = cmdlineParser.getUint('multisig-threshold', { optional: true, min: 1 });
 			options.remove_signature = cmdlineParser.paramIsPresent('remove-existing');
