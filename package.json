@@ -29,6 +29,7 @@
     "msgpack-lite": "github:algorand/msgpack-lite",
     "node-cmdline-parser": "^1.0.2",
     "node-fetch": "^2.6.0",
+    "promise-queue": "^2.2.5",
     "readline-sync": "^1.4.9"
   },
   "devDependencies": {
