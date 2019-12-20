@@ -27,6 +27,8 @@ async function main() {
 		console.log('  --genesis-id {STRING}               : Include transactions with the specified genesis id. Wildcards accepted.');
 		console.log('  --not-genesis-id {STRING}           : Include transactions with genesis id different than the specified. ' +
 					'Wildcards accepted.');
+		console.log('  --type {STRING}                     : Include transactions of the specified type.');
+		console.log('  --not-type {STRING}                 : Include transactions of a different type than the specified.');
 		console.log('  --from {ADDRESS}                    : Include transactions coming from the specified address.');
 		console.log('  --not-from {ADDRESS}                : Include transactions coming from an address different than the specified.');
 		console.log('  --to {ADDRESS}                      : Include transactions sent to the specified address.');
@@ -98,6 +100,10 @@ function parseCmdLineParams() {
 				options.filter_not_genesis_id = tools.utils.globStringToRegex(options.filter_not_genesis_id);
 			}
 
+			options.filter_type = cmdlineParser.getString('type', { optional: true });
+
+			options.filter_not_type = cmdlineParser.getString('not-type', { optional: true });
+
 			options.filter_from = cmdlineParser.getAddress('from', { optional: true });
 
 			options.filter_not_from = cmdlineParser.getAddress('not-from', { optional: true });
@@ -142,6 +148,17 @@ function setupFilters(options) {
 	if (options.filter_not_genesis_id) {
 		filters.push(function (tx_info) {
 			return (!options.filter_not_genesis_id.test(tx_info.genesis_id));
+		});
+	}
+
+	if (options.filter_type) {
+		filters.push(function (tx_info) {
+			return (tx_info.type == options.filter_type);
+		});
+	}
+	if (options.filter_not_type) {
+		filters.push(function (tx_info) {
+			return (tx_info.type != options.filter_not_type);
 		});
 	}
 
